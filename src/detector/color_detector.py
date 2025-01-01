@@ -3,8 +3,12 @@ color_detector.py
 """
 
 import cv2
+from cv2.typing import MatLike
 
 from src.detector.base_detector import BaseDetector, DetectorException
+from src.detector import utils
+from src.piece.piece import Piece
+# import src.utils as ut
 
 
 class ColorDetectorException(DetectorException):
@@ -18,7 +22,7 @@ class ColorDetector(BaseDetector):
     A color detector class implementing the DetectorInterface to detect specific colors in an image.
     """
 
-    def __init__(self, target_color_lower: int = 50, target_color_upper: int = 245):
+    def __init__(self, name: str = 'detector-image-color', min_area: int = 135):
         """
         Initializes the color detector.
 
@@ -26,23 +30,20 @@ class ColorDetector(BaseDetector):
             target_color_lower (tuple): The lower bound of the color in HSV format (e.g., (0, 100, 100)).
             target_color_upper (tuple): The upper bound of the color in HSV format (e.g., (10, 255, 255)).
         """
-        self.target_color_lower = target_color_lower
-        self.target_color_upper = target_color_upper
+        self._name = name
         self.status = "idle"
         self.detection_result = None
 
-    def process_detection(self, detection_result):
-        """
-        Processes the result of a detection.
-
-        Args:
-            detection_result (dict): A dictionary containing the detection result.
-        """
+        self._min_area = min_area
 
     def reset(self):
         """
         Resets the detector, clearing any internal states or buffers.
         """
+        self._name = 'detector-image-color'
+        self.detection_result = None
+        self._min_area = 135
+        self.status = "idle"
 
     def get_status(self):
         """
@@ -51,6 +52,7 @@ class ColorDetector(BaseDetector):
         Returns:
             str: The status of the detector.
         """
+        return self.status
 
     def initialize(self):
         """
@@ -59,61 +61,50 @@ class ColorDetector(BaseDetector):
         print("Color detector initialized.")
         self.status = "active"
 
-    def detect(self, image):
+    def detect(self, image: MatLike) -> list[Piece]:
         """
         Detects a specific color in the provided image.
 
         Args:
-            image (numpy.ndarray): The image from the camera.
+            image (MatLike): an image.
 
         Returns:
-            bool: True if the target color is detected, False otherwise.
+            list[Pieces]: A list of pieces.
         """
-        # Convertir la imagen a escala de grises (no es necesario si ya tienes la imagen a color)
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        # Resize image
+        image = cv2.resize(image, (640, 640))
 
-        # Crear un objeto CLAHE con un límite de contraste
-        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        # Reduce noise
+        noise_free_image = utils.reduce_noise(image, (31, 31))
 
-        # Aplicar CLAHE a la imagen en escala de grises
-        enhanced_image = clahe.apply(gray_image)
+        # Convert to gray
+        gray_image = cv2.cvtColor(noise_free_image, cv2.COLOR_BGR2GRAY)
 
-        # Convertir de nuevo a BGR para la imagen original a color
-        enhanced_image = cv2.cvtColor(enhanced_image, cv2.COLOR_GRAY2BGR)
+        # Segment image
+        threshold_image = utils.segment(gray_image, self._min_area)
 
-        return enhanced_image
-        # Convert the image to HSV color space
-        # hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # Find connected components
+        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
+        # ut.show_image(threshold_image)
 
-        # # Definir el rango de saturación para los píxeles no grises
-        # # Los grises tendrán una saturación baja, así que filtramos los píxeles con saturación baja
-        # lower_saturation = 90  # Valor bajo de saturación, ajustable según la imagen
-        # upper_saturation = 255  # Valor alto de saturación
+        # Create Pieces
+        pieces: list[Piece] = []
 
-        # # Filtrar los píxeles con baja saturación (grises)
-        # lower_bound = np.array([0, lower_saturation, 0])  # Rango de HSV para excluir el gris
-        # upper_bound = np.array([180, upper_saturation, 255])
+        for label in range(1, num_labels):
+            x, y, w, h, area = stats[label]
+            mean_color = utils.get_mean_color_from_image(threshold_image, image)
+            position = utils.get_gravity_center(threshold_image)
+            piece = Piece(name='piece', bbox=(x, y, w, h), mean_color=mean_color, position=position, area=int(area))
+            piece.add_mean_color(utils.get_mean_color_from_label(label, labels, image))
+            piece.add_position(tuple(map(int, centroids[label])))
 
-        # # Crear la máscara
-        # mask = cv2.inRange(hsv_image, lower_bound, upper_bound)
+            pieces.append(piece)
 
-        # # Aplicar la máscara a la imagen original
-        # filtered_image = cv2.bitwise_and(image, image, mask=mask)
+        return pieces
 
-        # return filtered_image
-
-        # # Create a mask based on the target color range
-        # mask = cv2.inRange(hsv_image, self.target_color_lower, self.target_color_upper)
-
-        # # Find contours of the detected color
-        # contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-        # # If any contours are found, it means the color is detected
-        # if contours:
-        #     self.detection_result = {"color": True, "location": contours}
-        #     print("Target color detected!")
-        #     return True
-        # else:
-        #     self.detection_result = {"color": False, "location": None}
-        #     print("Target color not detected.")
-        #     return False
+    def release(self):
+        """
+        Relase
+        """
+        self.status = "idle"
+        print('Detector release')

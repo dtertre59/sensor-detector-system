@@ -18,7 +18,7 @@ class BaseSensor(ABC):
     """
 
     @abstractmethod
-    def read_value(self):
+    def read(self):
         """
         Read a value from the sensor
         """

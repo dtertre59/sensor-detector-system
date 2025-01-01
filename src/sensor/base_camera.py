@@ -27,7 +27,7 @@ class BaseCamera(BaseSensor):
         """
 
     @abstractmethod
-    def capture_image(self):
+    def read(self):
         """
         Captures an image from the camera.
 
@@ -36,14 +36,14 @@ class BaseCamera(BaseSensor):
         """
 
     @abstractmethod
-    def release(self):
-        """
-        Releases the camera resources when done.
-        """
-
-    @abstractmethod
-    def show_live_video(self):
+    def stream_video(self):
         """
         Displays the live video feed from the computer's webcam until
         a key is pressed.
+        """
+
+    @abstractmethod
+    def release(self):
+        """
+        Releases the camera resources when done.
         """

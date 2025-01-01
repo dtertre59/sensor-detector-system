@@ -35,15 +35,6 @@ class BaseDetector(ABC):
         """
 
     @abstractmethod
-    def process_detection(self, detection_result):
-        """
-        Processes the result of a detection.
-
-        Args:
-            detection_result (dict): A dictionary containing the detection result.
-        """
-
-    @abstractmethod
     def reset(self):
         """
         Resets the detector, clearing any internal states or buffers.
@@ -56,4 +47,10 @@ class BaseDetector(ABC):
 
         Returns:
             str: The status of the detector.
+        """
+
+    @abstractmethod
+    def release(self):
+        """
+        Release any resources held by the detector.
         """
