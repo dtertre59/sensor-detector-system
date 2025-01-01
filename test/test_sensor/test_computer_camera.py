@@ -11,9 +11,8 @@ def test_initialize_camera(ccamera: ComputerCamera) -> None:
     test
     """
     try:
-        result = ccamera.initialize()
-        if result:
-            print('YES')
+        ccamera.initialize()
+        print('YES')
     except ComputerCameraException:
         print('NO')
 
@@ -22,12 +21,8 @@ def test_capture_image(ccamera: ComputerCamera) -> None:
     """
     test
     """
-    frame, filename = ccamera.capture_image()
+    frame = ccamera.read()
     if frame is not None:
-        print('YES')
-    else:
-        print('NO')
-    if filename:
         print('YES')
     else:
         print('NO')
@@ -37,7 +32,22 @@ def test_live_video(ccamera: ComputerCamera) -> None:
     """
     test
     """
-    ccamera.show_live_video()
+    try:
+        ccamera.stream_video()
+        print('YES')
+    except ComputerCameraException:
+        print('NO')
+
+
+def test_release_camera(ccamera: ComputerCamera) -> None:
+    """
+    test
+    """
+    try:
+        ccamera.release()
+        print('YES')
+    except ComputerCameraException:
+        print('NO')
 
 
 def main():
@@ -46,8 +56,9 @@ def main():
     """
     ccamera = ComputerCamera()
     test_initialize_camera(ccamera)
-    # test_capture_image(ccamera)
+    test_capture_image(ccamera)
     test_live_video(ccamera)
+    test_release_camera(ccamera)
 
 
 if __name__ == '__main__':
