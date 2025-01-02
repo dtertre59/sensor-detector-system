@@ -11,6 +11,7 @@ class SensorType(Enum):
     used in the system. This is used to specify the type of sensor that is
     being used in the system.
     """
+    CAMERA = "camera"
     COMPUTER_CAMERA = "computer_camera"
-    RASPI_CAMERA = "raspi_camera"
+    RPI_CAMERA = "raspi_camera"
     DENSITY_SENSOR = "density_sensor"

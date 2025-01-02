@@ -5,12 +5,11 @@ computer_camera.py
 # import time
 
 from pathlib import Path
+import numpy as np
 import cv2
-from cv2.typing import MatLike
 
 from src.sensor.base_camera import BaseCamera, CameraException
-
-from src.utils import obtain_filenames_last_number
+from src.sensor.sensor_type import SensorType
 
 
 class ComputerCameraException(CameraException):
@@ -22,42 +21,44 @@ class ComputerCameraException(CameraException):
 class ComputerCamera(BaseCamera):
     """
     Camera implementation for the computer's webcam using OpenCV.
+
+    Attributes:
+        _name (str): The name of the camera.
+        _camera_id (int): The camera ID.
+        _type (SensorType): The type of the camera.
+        _status (str): The status of the camera.
+        _camera (Any): The camera object.
+        __photo_counter (int): The photo counter for saving photos.
+        __save_photos_path (Path): The path to save photos.
+        __photo_name (str): The name
+
+    Methods:
+        calibrate(): Calibrate the sensor
+        get_status(): Get the status of the sensor
+        initialize(): Initializes the camera
+        read(): Captures an image from the camera
+        stream_video(): Displays the live video feed from the camera
+        release(): Releases the camera resources when done
     """
 
     def __init__(self, name: str = "Computer Camera",
                  save_photos_path: Path = Path("data/images/samples"), photo_name: str = 'photo'):
         """
         Initializes the camera object to None.
-        """
-        self._name = name
-        self._camera = None
-        self.__save_photos_path = save_photos_path
-        self.__photo_name = photo_name
-        self.__photo_counter = obtain_filenames_last_number(self.__save_photos_path, self.__photo_name)
 
-    def _is_init(self) -> bool:
+        Args:
+            name (str): The name of the camera.
+            save_photos_path (Path): The path to save photos.
+            photo_name (str): The name of the photo.
         """
-        Is camera init
+        super().__init__(name, s_type=SensorType.COMPUTER_CAMERA,
+                         save_photos_path=save_photos_path, photo_name=photo_name)
 
-        Returns:
-            bool
-        """
-        if self._camera:
-            return True
-        print("Camera not initialized.")
-        return False
+    # ----- protected methods
 
-    def calibrate(self):
-        """
-        Calibrate the sensor
-        """
+    # ----- public methods
 
-    def get_status(self):
-        """
-        Get the status of the sensor
-        """
-
-    def initialize(self):
+    def initialize(self) -> None:
         """
         Initializes the computer's webcam using OpenCV.
 
@@ -68,18 +69,21 @@ class ComputerCamera(BaseCamera):
             raise ComputerCameraException("Error opening computer webcam.")
         print("Computer webcam initialized.")
 
-    def read(self) -> MatLike:
+    def read(self) -> np.ndarray:
         """
-        Read a value from the sensor
+        Read a value from the camera.
+
+        Returns:
+            np.ndarray: The image captured from the camera.
         """
-        if not self._is_init():
-            return
+        # if not self._is_init():
+        #     return
         ret, frame = self._camera.read()
         if not ret:
             raise ComputerCameraException("Failed to grab frame.")
         return frame
 
-    def stream_video(self):
+    def stream_video(self) -> None:
         """
         Displays the live video feed from the computer's webcam.
 
@@ -106,7 +110,7 @@ class ComputerCamera(BaseCamera):
                 print(f"Photo saved as {photo_filename}")
         cv2.destroyAllWindows()
 
-    def release(self):
+    def release(self) -> None:
         """
         Releases the camera resources when done.
         """

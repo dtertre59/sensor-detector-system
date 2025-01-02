@@ -4,6 +4,8 @@ detector.py
 
 from abc import ABC, abstractmethod
 
+from src.detector.detector_type import DetectorType
+
 
 class DetectorException(Exception):
     """
@@ -15,6 +17,14 @@ class BaseDetector(ABC):
     """
     Abstract base class for detectors.
     """
+    @abstractmethod
+    def get_type(self) -> DetectorType:
+        """
+        Returns the type of the detector.
+
+        Returns:
+            DetectorType: The type of the detector.
+        """
 
     @abstractmethod
     def initialize(self):

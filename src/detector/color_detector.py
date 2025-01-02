@@ -6,6 +6,8 @@ import cv2
 from cv2.typing import MatLike
 
 from src.detector.base_detector import BaseDetector, DetectorException
+from src.detector.detector_type import DetectorType
+
 from src.detector import utils
 from src.piece.piece import Piece
 # import src.utils as ut
@@ -31,7 +33,9 @@ class ColorDetector(BaseDetector):
             target_color_upper (tuple): The upper bound of the color in HSV format (e.g., (10, 255, 255)).
         """
         self._name = name
-        self.status = "idle"
+        self._status = "idle"
+        self._type = DetectorType.COLOR_DETECTOR
+
         self.detection_result = None
 
         self._min_area = min_area
@@ -43,7 +47,7 @@ class ColorDetector(BaseDetector):
         self._name = 'detector-image-color'
         self.detection_result = None
         self._min_area = 135
-        self.status = "idle"
+        self._status = "idle"
 
     def get_status(self):
         """
@@ -52,14 +56,23 @@ class ColorDetector(BaseDetector):
         Returns:
             str: The status of the detector.
         """
-        return self.status
+        return self._status
+
+    def get_type(self) -> DetectorType:
+        """
+        Returns the type of the detector.
+
+        Returns:
+            DetectorType: The type of the detector.
+        """
+        return self._type
 
     def initialize(self):
         """
         Initializes the color detector.
         """
         print("Color detector initialized.")
-        self.status = "active"
+        self._status = "active"
 
     def detect(self, image: MatLike) -> list[Piece]:
         """
@@ -106,5 +119,5 @@ class ColorDetector(BaseDetector):
         """
         Relase
         """
-        self.status = "idle"
+        self._status = "idle"
         print('Detector release')

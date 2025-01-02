@@ -2,6 +2,7 @@
 Factory classes.
 """
 
+import platform
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -15,10 +16,16 @@ from src.detector.detector_type import DetectorType
 from src.detector.base_detector import BaseDetector
 from src.detector.color_detector import ColorDetector
 
+if platform.system() == "Linux":
+    from src.sensor.rpi_camera import RPiCamera
+
 
 class Factory(ABC):
     """
     Abstract base class for factories.
+
+    Methods:
+        create(object_type: Enum) -> Any: Create a new instance of a product.
     """
 
     @abstractmethod
@@ -37,6 +44,9 @@ class Factory(ABC):
 class SensorFactory(Factory):
     """
     Factory class for creating sensor objects.
+
+    Methods:
+        create(object_type: SensorType) -> BaseSensor: Create a new sensor object.
     """
 
     def create(self, object_type: SensorType) -> BaseSensor:
@@ -49,9 +59,10 @@ class SensorFactory(Factory):
         Returns:
             Any: The created sensor object.
         """
-
         if object_type == SensorType.COMPUTER_CAMERA:
             return ComputerCamera()
+        elif object_type == SensorType.RPI_CAMERA and platform.system() == "Linux":
+            return RPiCamera()  # pylint: disable=E0606
         else:
             raise ValueError(f"Invalid sensor type: {object_type}")
 
@@ -59,6 +70,9 @@ class SensorFactory(Factory):
 class DetectorFactory(Factory):
     """
     Factory class for creating detector objects.
+
+    Methods:
+        create(object_type: DetectorType) -> BaseDetector: Create a new detector object.
     """
 
     def create(self, object_type: DetectorType) -> BaseDetector:

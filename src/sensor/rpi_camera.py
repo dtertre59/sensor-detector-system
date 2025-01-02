@@ -2,18 +2,19 @@
 rpi_camera.py
 """
 
-# import time
-
+import platform
 from pathlib import Path
-import cv2
-from cv2.typing import MatLike
-
 import numpy as np
-from picamera2 import Picamera2
+import cv2
 
 from src.sensor.base_camera import BaseCamera, CameraException
+from src.sensor.sensor_type import SensorType
 
-from src.utils import obtain_filenames_last_number
+# Check if the operating system is Linux
+if platform.system() != "Linux":
+    raise EnvironmentError("RPiCamera is only supported on Linux.")
+else:
+    from picamera2 import Picamera2  # pylint: disable=import-error  # type: ignore
 
 
 class RPiCameraException(CameraException):
@@ -25,6 +26,24 @@ class RPiCameraException(CameraException):
 class RPiCamera(BaseCamera):
     """
     Camera implementation for the rpi's cam using OpenCV.
+
+    Attributes:
+        _name (str): The name of the camera.
+        _camera_id (int): The camera ID.
+        _type (SensorType): The type of the camera.
+        _status (str): The status of the camera.
+        _camera (Any): The camera object.
+        __photo_counter (int): The photo counter for saving photos.
+        __save_photos_path (Path): The path to save photos.
+        __photo_name (str): The name
+
+    Methods:
+        calibrate(): Calibrate the sensor
+        get_status(): Get the status of the sensor
+        initialize(): Initializes the camera
+        read(): Captures an image from the camera
+        stream_video(): Displays the live video feed from the camera
+        release(): Releases the camera resources when done
     """
 
     def __init__(self, name: str = "RPi Camera",
@@ -32,39 +51,19 @@ class RPiCamera(BaseCamera):
         """
         Initializes the camera object to None.
         """
-        self._name = name
-        self._camera = None
-        self.__save_photos_path = save_photos_path
-        self.__photo_name = photo_name
-        self.__photo_counter = obtain_filenames_last_number(self.__save_photos_path, self.__photo_name)
+        super().__init__(name, s_type=SensorType.RPI_CAMERA,
+                         save_photos_path=save_photos_path, photo_name=photo_name)
 
-    def _is_init(self) -> bool:
-        """
-        Is camera init
+    # ----- protected methods
 
-        Returns:
-            bool
-        """
-        if self._camera:
-            return True
-        print("Camera not initialized.")
-        return False
+    # ----- public methods
 
-    def calibrate(self):
-        """
-        Calibrate the sensor
-        """
-
-    def get_status(self):
-        """
-        Get the status of the sensor
-        """
-
-    def initialize(self):
+    def initialize(self) -> None:
         """
         Initializes the rpi's webcam using OpenCV.
 
-        Raises an exception if the camera cannot be opened.
+        Raises:
+            RPiCameraException: If there is an error opening the rpi's webcam.
         """
         self._camera = Picamera2()
         # video resolution (optional)
@@ -73,17 +72,19 @@ class RPiCamera(BaseCamera):
             raise RPiCameraException("Error opening rpi webcam.")
         print("RPi webcam initialized.")
 
-    def read(self) -> MatLike:
+    def read(self) -> np.ndarray:
         """
-        Read a value from the sensor
-        """
-        if not self._is_init():
-            return
-        # Crear una imagen en memoria (numpy array)
-        image = self._camera.capture_image()
-        return image
+        Read a value from the rpi's camera.
 
-    def stream_video(self):
+        Returns:
+            np.ndarray: The image frame from the camera.
+        """
+        # if not self._is_init():
+        #     return
+        frame = self._camera.capture_image()
+        return frame
+
+    def stream_video(self) -> None:
         """
         Displays the live video feed from the rpi's webcam.
 
