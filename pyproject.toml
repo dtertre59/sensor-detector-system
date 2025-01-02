@@ -17,7 +17,8 @@ requires-python = ">= 3.13.1"
 
 dependencies = [
   "opencv-python>=4.10.0",
-  "matplotlib>=3.10.0"
+  "matplotlib>=3.10.0",
+  "picamera2"
 ]
 
 [tool.hatch.build.targets.wheel]
