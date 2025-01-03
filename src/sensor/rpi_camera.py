@@ -63,13 +63,14 @@ class RPiCamera(BaseCamera):
         Initializes the rpi's webcam using OpenCV.
 
         Raises:
-            RPiCameraException: If there is an error opening the rpi's webcam.
+            RPiCameraException: If there is an error opening the rpi's cam.
         """
         self._camera = Picamera2()
-        # video resolution (optional)
-        # self._camera.sensor_resolution = (1280, 720)
+        self._camera.configure(self._camera.create_preview_configuration(main={"format": "RGB888", "size": (640, 480)}))
+        self._camera.start()
+
         if not self._camera:
-            raise RPiCameraException("Error opening rpi webcam.")
+            raise RPiCameraException("Error opening rpi cam.")
         print("RPi webcam initialized.")
 
     def read(self) -> np.ndarray:
@@ -81,12 +82,15 @@ class RPiCamera(BaseCamera):
         """
         # if not self._is_init():
         #     return
-        frame = self._camera.capture_image()
+        frame = self._camera.capture_array()
+        frame = np.array(frame, dtype=np.uint8)
+        print('goof read')
+        cv2.imwrite('aaa1.jpg', frame)
         return frame
 
     def stream_video(self) -> None:
         """
-        Displays the live video feed from the rpi's webcam.
+        Displays the live video feed from the rpi's cam.
 
         Options:
             - Press 'q' to quit
