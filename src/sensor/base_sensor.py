@@ -20,28 +20,22 @@ class BaseSensor(ABC):
     Defines the common methods that all sensor implementations must provide.
 
     Methods:
-        get_type() -> SensorType: Get the type of the sensor
-        get_status() -> str: Get the status of the sensor
         calibrate() -> None: Calibrate the sensor
         read() -> Any: Read a value from the sensor
     """
 
+    @property
     @abstractmethod
-    def get_type(self) -> SensorType:
+    def name(self) -> str:
         """
-        Get the type of the sensor
-
-        Returns:
-            SensorType: The type of the sensor
+        The name of the sensor
         """
 
+    @property
     @abstractmethod
-    def get_status(self) -> str:
+    def type(self) -> SensorType:
         """
-        Get the status of the sensor
-
-        Returns:
-            str: The status of the sensor
+        The type of the sensor
         """
 
     @abstractmethod

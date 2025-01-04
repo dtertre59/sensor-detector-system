@@ -12,7 +12,7 @@ def test_computer_camera_instance():
     test
     """
     sensor = SensorFactory().create(SensorType.COMPUTER_CAMERA)
-    if sensor.get_type() == SensorType.COMPUTER_CAMERA:
+    if sensor.type == SensorType.COMPUTER_CAMERA:
         print('OK')
     else:
         print('NO')
@@ -24,7 +24,7 @@ def test_rpi_camera_instance():
     """
     if platform.system() == "Linux":
         sensor = SensorFactory().create(SensorType.RPI_CAMERA)
-        if sensor.get_type() == SensorType.RPI_CAMERA:
+        if sensor.type() == SensorType.RPI_CAMERA:
             print('OK')
         else:
             print('NO')

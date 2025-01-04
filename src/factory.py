@@ -64,7 +64,7 @@ class SensorFactory(Factory):
         elif object_type == SensorType.RPI_CAMERA and platform.system() == "Linux":
             return RPiCamera()  # pylint: disable=E0606
         else:
-            raise ValueError(f"Invalid sensor type: {object_type}")
+            raise ValueError(f"Invalid sensor type: {object_type.name}")
 
 
 class DetectorFactory(Factory):
@@ -85,4 +85,4 @@ class DetectorFactory(Factory):
         if object_type == DetectorType.COLOR_DETECTOR:
             return ColorDetector()
         else:
-            raise ValueError(f"Invalid detector type: {object_type}")
+            raise ValueError(f"Invalid detector type: {object_type.name}")

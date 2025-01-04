@@ -5,7 +5,7 @@ rpi_camera.py
 import platform
 from pathlib import Path
 import numpy as np
-import cv2
+# import cv2
 
 from src.sensor.base_camera import BaseCamera, CameraException
 from src.sensor.sensor_type import SensorType
@@ -32,28 +32,43 @@ class RPiCamera(BaseCamera):
         _camera_id (int): The camera ID.
         _type (SensorType): The type of the camera.
         _status (str): The status of the camera.
+        _photo_path (Path): The path to save photos.
+        _photo_name (str): The name of the photo.
+        _photo_counter (int): The photo counter for saving photos.
+        _video_path (Path): The path to save videos.
+        _video_name (str): The name of the video.
+        _video_counter (int): The video counter for saving videos.
         _camera (Any): The camera object.
-        __photo_counter (int): The photo counter for saving photos.
-        __save_photos_path (Path): The path to save photos.
-        __photo_name (str): The name
+        _camera_config (Any): The camera configuration object.
 
     Methods:
+        _is_init(): Is camera init.
+        _save_photo(frame: np.ndarray, verbose: bool = False): Save a photo from the camera.
+        _increment_photo_counter(value: int = 1): Update the photo counter
         calibrate(): Calibrate the sensor
-        get_status(): Get the status of the sensor
         initialize(): Initializes the camera
         read(): Captures an image from the camera
         stream_video(): Displays the live video feed from the camera
+        record_video(): Record a video from the camera
         release(): Releases the camera resources when done
     """
 
     def __init__(self, name: str = "RPi Camera",
-                 save_photos_path: Path = Path("data/images/samples"), photo_name: str = 'rpi_photo'):
+                 photo_path: Path = Path("data/images/samples"), photo_name: str = 'rpi_photo',
+                 video_path: Path = Path("data/videos/samples"), video_name: str = 'rpi_video'):
         """
         Initializes the camera object to None.
+
+        Args:
+            name (str): The name of the camera.
+            photo_path (Path): The path to save photos.
+            photo_name (str): The name of the photo.
+            video_path (Path): The path to save videos.
+            video_name (str): The name of the video.
         """
-        super().__init__(name, s_type=SensorType.RPI_CAMERA,
-                         save_photos_path=save_photos_path, photo_name=photo_name)
-    
+        super().__init__(name, s_type=SensorType.RPI_CAMERA, photo_path=photo_path, photo_name=photo_name,
+                         video_path=video_path, video_name=video_name)
+
     # ----- protected methods
 
     # ----- public methods
@@ -87,32 +102,28 @@ class RPiCamera(BaseCamera):
         frame = self._camera.capture_array()
         return frame
 
-    def stream_video(self) -> None:
+    def record_video(self, ending: str = 'mp4', duration: int = 10, verbose: bool = False) -> None:
         """
-        Displays the live video feed from the rpi's cam.
+        record a video from the rpi's camera.
 
-        Options:
-            - Press 'q' to quit
-            - Press 's' | 'S' | ' ' to save a photo
+        Args:
+            filename (str): The filename to save the video.
+            ending (str): The file ending of the video.
+            duration (int): The duration of the video in seconds.
+            verbose (bool): If True, print the filename of the video saved.
         """
         if not self._is_init():
             return
-        print("Press 'q' key to stop the live video feed.")
-        while True:
-            frame = self.read()
-            cv2.imshow(f'{self._name} live streaming', frame)
 
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q'):  # ASCII code for 'q'
-                # quit
-                break
-            if key == 32 or key == ord('s') or key == ord('S'):  # Space key or 's' key
-                # save photo
-                photo_filename = self.__save_photos_path / f"{self.__photo_name}_{self.get_photo_counter()}.png"
-                cv2.imwrite(photo_filename, frame)
-                self.update_photo_counter()
-                print(f"Photo saved as {photo_filename}")
-        cv2.destroyAllWindows()
+        filepath = self._video_path / f"{self._video_name}_{self._video_counter}.{ending}"
+
+        if verbose:
+            print(f"Recording video for {duration} seconds...")
+
+        self._camera.start_and_record_video(filepath, duration)
+
+        if verbose:
+            print(f"Video saved as {filepath}")
 
     def release(self):
         """
