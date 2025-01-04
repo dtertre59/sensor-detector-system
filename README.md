@@ -9,7 +9,7 @@ This code will run in a RaspberriPi 4b
 David Tertre Boye
 
 
-## Init Project
+## Init Project in mac
 
 Crear entorno virtual
 
@@ -27,9 +27,66 @@ Instalar dependecias
 
 ```bash
 pip install hatchling
+```
 
+Si estas en mac
+
+```bash
+pip install -e ".[mac]"
+```
+
+## Init project in RaspberryPi OS
+
+Actualizar software y comprobar que la camara funciona con el comando:
+
+```bash
+rpicam-hello
+```
+
+Si no funciona/no derecta la camara, seguir la documentacion de:
+
+https://www.raspberrypi.com/documentation/computers/camera_software.html
+
+
+Instalar dependencias globales:
+
+picamera2 is instaled default, but if you want to install:
+
+```bash
+sudo apt install -y python3-picamera2
+```
+
+Install opencv using apt ensure de compatibility
+
+```bash
+sudo apt install -y python3-opencv
+sudo apt install -y opencv-data
+```
+
+Crear entorno virtual en la raspberryPi
+
+```bash
+python3 -m venv --system-site-packages .venv
+```
+
+Activar entorno virtual
+
+```bash
+source .venv/bin/activate
+```
+
+Instalar dependencias
+
+```bash
+pip install hatchling
+```
+
+```bash
 pip install -e .
 ```
+
+Esto se debe a que en la raspberryPi se utilizan modulos instalados con apt para que no haya problemas
+con las librerias de la camara.
 
 
 ## more
