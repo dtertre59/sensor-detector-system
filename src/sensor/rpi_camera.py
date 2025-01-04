@@ -83,7 +83,7 @@ class RPiCamera(BaseCamera):
             RPiCameraException: If there is an error opening the rpi's cam.
         """
         self._camera = Picamera2()
-        camera_config = self._camera.create_preview_configuration(main={"format": "XRGB8888",
+        camera_config = self._camera.create_preview_configuration(main={"format": "RGB888",
                                                                         "size": (640, 480)})
         self._camera.configure(camera_config)
         self._camera.start()
@@ -104,7 +104,8 @@ class RPiCamera(BaseCamera):
         frame = self._camera.capture_array()
         return frame
 
-    def record_video(self, ending: str = 'h264', duration: int = 5, verbose: bool = False) -> None:
+    # Deprecated (with opencv is more efficient and compatible with other cameras)
+    def record_video_d(self, ending: str = 'mp4', duration: int = 5, verbose: bool = False) -> None:
         """
         record a video from the rpi's camera.
 

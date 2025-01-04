@@ -78,6 +78,9 @@ class BaseCamera(BaseSensor):
         self._camera = None
         self._camera_config = None
 
+        self.__output_video = None
+        self.__video_recorder_flag = 0
+
     # ----- Properties and Setters
 
     @property
@@ -314,20 +317,6 @@ class BaseCamera(BaseSensor):
         print("Camera not initialized.")
         return False
 
-    def _save_photo(self, frame: np.ndarray, verbose: bool = False) -> None:
-        """
-        Save a photo from the camera.
-
-        Args:
-            frame (np.ndarray): The image frame from the camera.
-            verbose (bool): Print the photo filename.
-        """
-        self._increment_counter('photo')
-        photo_filename = self._photo_path / f"{self._photo_name}_{self._photo_counter}.png"
-        cv2.imwrite(str(photo_filename), frame)
-        if verbose:
-            print(f"Photo saved as {photo_filename}")
-
     def _increment_counter(self, option: str = 'photo', value: int = 1) -> None:
         """
         Update the photo counter
@@ -342,6 +331,52 @@ class BaseCamera(BaseSensor):
             self._video_counter += value
         else:
             raise ValueError('Option must be "photo" or "video".')
+
+    def _save_photo(self, frame: np.ndarray, verbose: bool = False) -> None:
+        """
+        Save a photo from the camera.
+
+        Args:
+            frame (np.ndarray): The image frame from the camera.
+            verbose (bool): Print the photo filename.
+        """
+        self._increment_counter('photo')
+        photo_filename = self._photo_path / f"{self._photo_name}_{self._photo_counter}.png"
+        cv2.imwrite(str(photo_filename), frame)
+        if verbose:
+            print(f"Photo saved as {photo_filename}")
+
+    def _record_video(self, frame: np.ndarray, verbose: bool = False) -> None:
+        """
+        record video TODO
+        """
+        if self.__video_recorder_flag == 0:
+            return
+        elif self.__video_recorder_flag == 2:
+            if verbose:
+                print('Setup video recorder')
+            # setup video record
+            self._increment_counter('video')
+            filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
+            codec = cv2.VideoWriter_fourcc(*'mp4v')
+            framerate = 30
+            resolution = (640, 480)
+            # Create a VideoWriter object for writing the output video
+            self.__output_video = cv2.VideoWriter(str(filepath), codec, framerate, resolution)
+            self.__video_recorder_flag = 1
+        elif self.__video_recorder_flag == 1:
+            if verbose:
+                print('Video recording ...')
+            self.__output_video.write(frame)
+            cv2.putText(frame, 'Recording video ...', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        elif self.__video_recorder_flag == -1:
+            self.__output_video.release()
+            self.__video_recorder_flag = 0
+            if verbose:
+                filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
+                print(f'video recorded as {filepath}')
+        else:
+            raise ValueError(f'Video recorder flag. invalid value {self.__video_recorder_flag}')
 
     # ----- public methods
 
@@ -379,16 +414,25 @@ class BaseCamera(BaseSensor):
         Options:
             - Press 'q' to quit
             - Press 's' | 'S' | ' ' to save a photo
+            - Press 'r' | 'R' to start and stop recording
 
         Args:
             verbose (bool): If True, print the filename of the photo saved.
         """
         if not self._is_init():
             return
+        
+        self.__video_recorder_flag = 0
+
         if verbose:
             print("Press 'q' key to stop the live video feed.")
         while True:
             frame = self.read()
+
+            # start/stop video recording
+            if self.__video_recorder_flag != 0:
+                self._record_video(frame, verbose)
+
             cv2.imshow(f'{self._name} live streaming', frame)
 
             key = cv2.waitKey(1) & 0xFF
@@ -398,6 +442,16 @@ class BaseCamera(BaseSensor):
             if key == 32 or key == ord('s') or key == ord('S'):  # Space key or 's' key
                 # save photo
                 self._save_photo(frame, verbose)
+            if key == ord('r') or key == ord('R'):
+                if self.__video_recorder_flag == 0:
+                    # Start recording
+                    self.__video_recorder_flag = 2
+                elif self.__video_recorder_flag == 1:
+                    # Stop recording
+                    self.__video_recorder_flag = -1
+
+
+
         cv2.destroyAllWindows()
 
     def record_video(self) -> None:
@@ -405,8 +459,7 @@ class BaseCamera(BaseSensor):
         Record a video from the camera.
         """
 
-    # TODO
-    def record_video_standar(self, ending: str = 'avi', duration: int = 5, verbose: bool = False) -> None:
+    def record_video_standar(self, ending: str = 'mp4', duration: int = 5, verbose: bool = False) -> None:
         """
         Record a video from the camera.
 
@@ -423,14 +476,21 @@ class BaseCamera(BaseSensor):
 
         self._increment_counter('video')
         filepath = self._video_path / f"{self._video_name}_{self._video_counter}.{ending}"
+        codec = cv2.VideoWriter_fourcc(*'mp4v')
+        framerate = 30
+        resolution = (640, 480)
 
-        out = cv2.VideoWriter(str(filepath), cv2.VideoWriter_fourcc(*'MPEG'), 30.0, (640, 480))
+        # Create a VideoWriter object for writing the output video
+        out = cv2.VideoWriter(str(filepath), codec, framerate, resolution)
+
 
         while True:
             frame = self.read()
 
-            frame.resize((640, 480))
+            if frame is None:
+                continue
 
+            frame = cv2.resize(frame, resolution)
             out.write(frame)
 
             cv2.imshow('Frame', frame)

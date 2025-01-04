@@ -5,19 +5,17 @@ utils.py
 
 import numpy as np
 import cv2
-from cv2.typing import MatLike
 
-
-def reduce_noise(image: MatLike, ksize: tuple = (31, 31)) -> MatLike:
+def reduce_noise(image: np.ndarray, ksize: tuple = (31, 31)) -> np.ndarray:
     """
     Reduce noise in the image using Gaussian blur.
 
     Args:
-        image (MatLike): The input image.
+        image (np.ndarray): The input image.
         ksize (tuple): size. 
 
     Returns:
-        MatLike: The denoised image.
+        np.ndarray: The denoised image.
     """
     # Apply Gaussian blur to reduce noise
     denoised_image = cv2.GaussianBlur(image, ksize, 0)
@@ -25,16 +23,16 @@ def reduce_noise(image: MatLike, ksize: tuple = (31, 31)) -> MatLike:
 
 
 # Delete small labels
-def delete_small_labels(thresh_image: MatLike, min_area: int = 135) -> MatLike:
+def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135) -> np.ndarray:
     """
     Delete small labels
 
         Args:
-            thresh_image (MatLike): The input image.
+            thresh_image (np.ndarray): The input image.
             min_area (int): The minimum area.
 
         Returns:
-            MatLike: The filtered image."""
+            np.ndarray: The filtered image."""
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(thresh_image)
     # Shoe the number of detected objects
     print(f'Número de objetos detectados: {num_labels - 1}')  # Rest the background
@@ -51,7 +49,7 @@ def delete_small_labels(thresh_image: MatLike, min_area: int = 135) -> MatLike:
     return filtered_image
 
 
-def segment(gray_image: MatLike, min_area: int = 135) -> MatLike:
+def segment(gray_image: np.ndarray, min_area: int = 135) -> np.ndarray:
     """
     segment Image
 
@@ -67,7 +65,7 @@ def segment(gray_image: MatLike, min_area: int = 135) -> MatLike:
     return thresh
 
 
-# def segment_image_m1(gray_image: MatLike) -> MatLike:
+# def segment_image_m1(gray_image: np.ndarray) -> np.ndarray:
 #     """
 #     segment Image
 
@@ -112,7 +110,7 @@ def segment(gray_image: MatLike, min_area: int = 135) -> MatLike:
 #     return b
 
 
-def get_mean_color_from_image(image: MatLike, original_image: MatLike) -> tuple:
+def get_mean_color_from_image(image: np.ndarray, original_image: np.ndarray) -> tuple:
     """
     Calculate the mean color of the object in the image.
 

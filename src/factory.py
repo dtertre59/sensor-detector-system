@@ -27,9 +27,10 @@ class Factory(ABC):
     Methods:
         create(object_type: Enum) -> Any: Create a new instance of a product.
     """
-
+    # TODO
+    @staticmethod
     @abstractmethod
-    def create(self, object_type: Enum) -> Any:
+    def create(object_type: Enum) -> Any:
         """
         Create a new instance of a product.
 
@@ -48,8 +49,8 @@ class SensorFactory(Factory):
     Methods:
         create(object_type: SensorType) -> BaseSensor: Create a new sensor object.
     """
-
-    def create(self, object_type: SensorType) -> BaseSensor:
+    @staticmethod
+    def create(object_type: SensorType) -> BaseSensor:
         """
         Create a new sensor object.
 
@@ -75,7 +76,8 @@ class DetectorFactory(Factory):
         create(object_type: DetectorType) -> BaseDetector: Create a new detector object.
     """
 
-    def create(self, object_type: DetectorType) -> BaseDetector:
+    @staticmethod
+    def create(object_type: DetectorType) -> BaseDetector:
         """
         Create a new detector object.
 

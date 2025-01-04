@@ -2,8 +2,8 @@
 color_detector.py
 """
 
+import numpy as np
 import cv2
-from cv2.typing import MatLike
 
 from src.detector.base_detector import BaseDetector, DetectorException
 from src.detector.detector_type import DetectorType
@@ -74,12 +74,12 @@ class ColorDetector(BaseDetector):
         print("Color detector initialized.")
         self._status = "active"
 
-    def detect(self, image: MatLike) -> list[Piece]:
+    def detect(self, image: np.ndarray) -> list[Piece]:
         """
         Detects a specific color in the provided image.
 
         Args:
-            image (MatLike): an image.
+            image (np.ndarray): an image.
 
         Returns:
             list[Pieces]: A list of pieces.

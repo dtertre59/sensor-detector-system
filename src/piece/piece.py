@@ -3,8 +3,8 @@ piece.py
 """
 
 import time
+import numpy as np
 import cv2
-from cv2.typing import MatLike
 
 
 class Piece:
@@ -409,12 +409,12 @@ class Piece:
         self._areas.append(piece.areas[-1])
         self._speed = self.calculate_speed()
 
-    def draw(self, image: MatLike, track: bool = False) -> None:
+    def draw(self, image: np.ndarray, track: bool = False) -> None:
         """
         Draw the piece information on the image.
 
         Args:
-            image (MatLike): The image to draw on.
+            image (np.ndarray): The image to draw on.
             track (bool). Draw or not the track
         """
         color = self.mean_colors[0]['mean_color']

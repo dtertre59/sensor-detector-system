@@ -70,9 +70,9 @@ def main():
 
     test_initialize_camera(rpi_camera)
     # test_capture_image(rpi_camera)
-    # test_live_video(rpi_camera)
-    # test_release_camera(rpi_camera)
-    test_record_video(rpi_camera)
+    test_live_video(rpi_camera)
+    test_release_camera(rpi_camera)
+    # test_record_video(rpi_camera)
 
 
 if __name__ == '__main__':

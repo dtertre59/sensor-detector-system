@@ -13,5 +13,5 @@ class SensorType(Enum):
     """
     CAMERA = "camera"
     COMPUTER_CAMERA = "computer_camera"
-    RPI_CAMERA = "raspi_camera"
+    RPI_CAMERA = "rpi_camera"
     DENSITY_SENSOR = "density_sensor"
