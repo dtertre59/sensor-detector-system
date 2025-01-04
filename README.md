@@ -63,7 +63,7 @@ sudo apt install -y python3-opencv
 sudo apt install -y opencv-data
 ```
 
-Crear entorno virtual en la raspberryPi
+Crear entorno virtual en la raspberryPi. Incluyendo los paquetes del sistema.
 
 ```bash
 python3 -m venv --system-site-packages .venv

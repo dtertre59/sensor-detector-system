@@ -64,7 +64,14 @@ class BaseCamera(BaseSensor):
         self.__save_photos_path = save_photos_path
         self.__photo_name = photo_name
         self.__photo_counter = obtain_filenames_last_number(self.__save_photos_path, self.__photo_name)
-
+    
+    # ----- properties and setters
+    
+    @property
+    def save_photos_path(self, path: Path) -> None:
+        """
+        """
+    
     # ----- protected methods
 
     def _is_init(self) -> bool:
@@ -107,6 +114,15 @@ class BaseCamera(BaseSensor):
             int: The photo counter
         """
         return self.__photo_counter
+    
+    def update_photo_counter(self, n: int = 1) -> None:
+        """
+        Update the photo counter
+        
+        Args:
+            n (int): counter increment
+        """
+        self.__photo_counter += 1
 
     # ----- Not implemented in the base class
 

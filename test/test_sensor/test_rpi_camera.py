@@ -23,7 +23,6 @@ def test_capture_image(rpi_camera: RPiCamera) -> None:
     test
     """
     frame = rpi_camera.read()
-    print(frame)
     show_image(frame)
     if frame is not None:
         print('YES')
@@ -59,9 +58,10 @@ def main():
     """
     rpi_camera = RPiCamera()
     test_initialize_camera(rpi_camera)
+    print(rpi_camera._camera)
     test_capture_image(rpi_camera)
-    # test_live_video(rpi_camera)
-    # test_release_camera(rpi_camera)
+    test_live_video(rpi_camera)
+    test_release_camera(rpi_camera)
 
 
 if __name__ == '__main__':

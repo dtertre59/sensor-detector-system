@@ -53,7 +53,7 @@ class RPiCamera(BaseCamera):
         """
         super().__init__(name, s_type=SensorType.RPI_CAMERA,
                          save_photos_path=save_photos_path, photo_name=photo_name)
-
+    
     # ----- protected methods
 
     # ----- public methods
@@ -66,7 +66,9 @@ class RPiCamera(BaseCamera):
             RPiCameraException: If there is an error opening the rpi's cam.
         """
         self._camera = Picamera2()
-        self._camera.configure(self._camera.create_preview_configuration(main={"format": "RGB888", "size": (640, 480)}))
+        camera_config = self._camera.create_preview_configuration(main={"format": "XRGB8888",
+                                                                        "size": (640, 480)})
+        self._camera.configure(camera_config)
         self._camera.start()
 
         if not self._camera:
@@ -83,9 +85,6 @@ class RPiCamera(BaseCamera):
         # if not self._is_init():
         #     return
         frame = self._camera.capture_array()
-        frame = np.array(frame, dtype=np.uint8)
-        print('goof read')
-        cv2.imwrite('aaa1.jpg', frame)
         return frame
 
     def stream_video(self) -> None:
@@ -109,9 +108,9 @@ class RPiCamera(BaseCamera):
                 break
             if key == 32 or key == ord('s') or key == ord('S'):  # Space key or 's' key
                 # save photo
-                self.__photo_counter += 1
-                photo_filename = self.__save_photos_path / f"{self.__photo_name}_{self.__photo_counter}.png"
+                photo_filename = self.__save_photos_path / f"{self.__photo_name}_{self.get_photo_counter()}.png"
                 cv2.imwrite(photo_filename, frame)
+                self.update_photo_counter()
                 print(f"Photo saved as {photo_filename}")
         cv2.destroyAllWindows()
 
