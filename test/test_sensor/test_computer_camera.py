@@ -50,14 +50,27 @@ def test_release_camera(ccamera: ComputerCamera) -> None:
         print('NO')
 
 
+def test_video_recording(ccamera: ComputerCamera) -> None:
+    """
+    test
+    """
+    try:
+        ccamera.record_video_standar()
+        print('YES')
+    except ComputerCameraException:
+        print('NO') 
+
+
 def main():
     """
     main
     """
     ccamera = ComputerCamera()
     test_initialize_camera(ccamera)
-    test_capture_image(ccamera)
-    test_live_video(ccamera)
+    # test_capture_image(ccamera)
+    # test_live_video(ccamera)
+
+    test_video_recording(ccamera)
     test_release_camera(ccamera)
 
 

@@ -328,12 +328,12 @@ class BaseCamera(BaseSensor):
         if verbose:
             print(f"Photo saved as {photo_filename}")
 
-    def _increment_counter(self, option: str= 'photo', value: int = 1) -> None:
+    def _increment_counter(self, option: str = 'photo', value: int = 1) -> None:
         """
         Update the photo counter
 
         Args:
-            option (str): photo or video
+            option (str): 'photo' or 'video'
             n (int): counter increment
         """
         if option == 'photo':
@@ -341,7 +341,7 @@ class BaseCamera(BaseSensor):
         elif option == 'video':
             self._video_counter += value
         else:
-            raise ValueError('Incorrect option. ')
+            raise ValueError('Option must be "photo" or "video".')
 
     # ----- public methods
 
@@ -408,17 +408,28 @@ class BaseCamera(BaseSensor):
     # TODO
     def record_video_standar(self, ending: str = 'avi', duration: int = 5, verbose: bool = False) -> None:
         """
+        Record a video from the camera.
+
+        Args:
+            ending (str): The video file extension.
+            duration (int): The duration of the video recording in seconds.
+            verbose (bool): If True, print the filename of the photo saved.
+
+        Raises:
+            CameraException: If there is an error grabbing the frame.
         """
         if not self._is_init():
             return
-        
+
         self._increment_counter('video')
         filepath = self._video_path / f"{self._video_name}_{self._video_counter}.{ending}"
-        
-        out = cv2.VideoWriter(str(filepath), cv2.VideoWriter_fourcc(*'MJPG'), 20.0, (640, 480))
-        
+
+        out = cv2.VideoWriter(str(filepath), cv2.VideoWriter_fourcc(*'MPEG'), 30.0, (640, 480))
+
         while True:
             frame = self.read()
+
+            frame.resize((640, 480))
 
             out.write(frame)
 

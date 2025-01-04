@@ -1,8 +1,33 @@
-import cv2
-import numpy as np
-from src.utils import show_image
+# READ VIDEO
 
-# image = np.zeros((300,300,3), dtype="uint8")
-image = cv2.imread('aaa1.jpg')
-print(image)
-show_image(image)
+import cv2
+
+# Ruta del archivo .avi
+archivo_mp4 = 'data/videos/samples/output_webcam.mp4'
+
+cap = cv2.VideoCapture(archivo_mp4)
+
+# Verificar si se abrió correctamente
+if not cap.isOpened():
+    print("Error al abrir el archivo de video.")
+    exit()
+
+while True:
+    # Leer un cuadro del video
+    ret, frame = cap.read()
+    
+    # Si no se puede leer un cuadro, terminamos
+    if not ret:
+        print("Fin del video.")
+        break
+
+    # Mostrar el cuadro
+    cv2.imshow('Video', frame)
+
+    # Salir si se presiona la tecla 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Liberar el objeto de captura y cerrar las ventanas
+cap.release()
+cv2.destroyAllWindows()

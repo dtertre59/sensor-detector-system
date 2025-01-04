@@ -1,27 +1,58 @@
-import time
-from pathlib import Path
-import numpy as np
+
+# WRITE VIDEO
+
+
 import cv2
-from picamera2 import Picamera2
-from src.utils import show_image
 
-camera = Picamera2()
-camera.configure(camera.create_preview_configuration(main={"format": "XRGB8888", "size": (640, 480)}))
-camera.start()
-time.sleep(1)
-while True:
-    frame = camera.capture_array()
-    # frame = np.array(frame, dtype=np.uint8)
-    cv2.imshow("camera", frame)
-    print(1)
-    cv2.waitKey(0)
-    # cv2.imwrite('bb.jpg', frame)
-    # camera.stop()
-    # time.sleep(2)
-    # image = cv2.imread('bb.jpg')
-    # print(image)
-    # show_image(image)
+def main():
+    # Define the window name
+    windowname = "Codeloop - Writing A Video"
+ 
+    # Open the video file for reading
+    cap = cv2.VideoCapture(0)
+ 
+    # Define the output filename, codec, frame rate, and resolution for the output video
+    filename = "data/videos/samples/video.mp4"
+    codec = cv2.VideoWriter_fourcc(*'mp4v')
+    framerate = 29
+    resolution = (640, 480)
 
-# print(type(frame))
-# print(frame.shape)
-# show_image(frame)
+    # Create a VideoWriter object for writing the output video
+    VideoOutPut = cv2.VideoWriter(filename, codec, framerate, resolution)
+ 
+    # Check if the video capture device is opened successfully
+    if cap.isOpened():
+        ret, frame = cap.read()
+    else:
+        ret = False
+ 
+    # Loop through the video frames
+    while ret:
+        # Read the next frame from the video
+        ret, frame = cap.read()
+ 
+        # Draw a green circle on the frame
+        cv2.circle(frame, (200, 200), 80, (0, 255, 0), -1)
+
+        resized_frame = cv2.resize(frame, resolution)
+        # Display the frame in the window
+        cv2.imshow(windowname, resized_frame)
+        # Write the frame to the output video
+        VideoOutPut.write(resized_frame)
+ 
+        
+ 
+        # Check for key press to exit the loop
+        if cv2.waitKey(1) == ord('q'):
+            break
+ 
+    # Destroy all OpenCV windows
+    cv2.destroyAllWindows()
+ 
+    # Release the VideoWriter object and video capture device
+    VideoOutPut.release()
+    cap.release()
+ 
+ 
+if __name__ == "__main__":
+    main()
