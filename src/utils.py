@@ -37,7 +37,7 @@ def obtain_filenames_last_number(directory: Path, name: str) -> int:
     Obtain last number
     """
     filenames = os.listdir(directory)
-    numbers = [int(filename.split('_')[1].split('.')[0]) for filename in filenames if filename.startswith(f'{name}_')]
+    numbers = [int(filename.split('_')[-1].split('.')[0]) for filename in filenames if filename.startswith(f'{name}_')]
     if not numbers:
         return 0
     return max(numbers)

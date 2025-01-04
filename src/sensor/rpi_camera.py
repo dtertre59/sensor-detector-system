@@ -3,6 +3,7 @@ rpi_camera.py
 """
 
 import platform
+import time
 from pathlib import Path
 import numpy as np
 # import cv2
@@ -15,6 +16,7 @@ if platform.system() != "Linux":
     raise EnvironmentError("RPiCamera is only supported on Linux.")
 else:
     from picamera2 import Picamera2  # pylint: disable=import-error  # type: ignore
+    from picamera2.encoders import H264Encoder, Quality
 
 
 class RPiCameraException(CameraException):
@@ -102,7 +104,7 @@ class RPiCamera(BaseCamera):
         frame = self._camera.capture_array()
         return frame
 
-    def record_video(self, ending: str = 'mp4', duration: int = 10, verbose: bool = False) -> None:
+    def record_video(self, ending: str = 'h264', duration: int = 5, verbose: bool = False) -> None:
         """
         record a video from the rpi's camera.
 
@@ -112,15 +114,17 @@ class RPiCamera(BaseCamera):
             duration (int): The duration of the video in seconds.
             verbose (bool): If True, print the filename of the video saved.
         """
-        if not self._is_init():
-            return
-
+        self._increment_counter('video')
         filepath = self._video_path / f"{self._video_name}_{self._video_counter}.{ending}"
 
+        self._camera = Picamera2()
+        self._camera.configure(self._camera.create_video_configuration())
+        encoder = H264Encoder()
         if verbose:
             print(f"Recording video for {duration} seconds...")
-
-        self._camera.start_and_record_video(filepath, duration)
+        self._camera.start_recording(encoder, str(filepath), quality=Quality.HIGH)
+        time.sleep(10)
+        self._camera.stop_recording()
 
         if verbose:
             print(f"Video saved as {filepath}")

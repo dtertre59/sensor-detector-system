@@ -35,7 +35,17 @@ def test_live_video(rpi_camera: RPiCamera) -> None:
     test
     """
     try:
-        rpi_camera.stream_video()
+        rpi_camera.stream_video(verbose=True)
+        print('YES')
+    except RPiCameraException:
+        print('NO')
+        
+def test_record_video(rpi_camera: RPiCamera) -> None:
+    """
+    test
+    """
+    try:
+        rpi_camera.record_video_standar(verbose=True)
         print('YES')
     except RPiCameraException:
         print('NO')
@@ -57,11 +67,12 @@ def main():
     main
     """
     rpi_camera = RPiCamera()
+
     test_initialize_camera(rpi_camera)
-    print(rpi_camera._camera)
-    test_capture_image(rpi_camera)
-    test_live_video(rpi_camera)
-    test_release_camera(rpi_camera)
+    # test_capture_image(rpi_camera)
+    # test_live_video(rpi_camera)
+    # test_release_camera(rpi_camera)
+    test_record_video(rpi_camera)
 
 
 if __name__ == '__main__':

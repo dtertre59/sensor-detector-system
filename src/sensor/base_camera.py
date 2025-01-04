@@ -322,21 +322,26 @@ class BaseCamera(BaseSensor):
             frame (np.ndarray): The image frame from the camera.
             verbose (bool): Print the photo filename.
         """
-        # save photo
-        self.increment_photo_counter()
+        self._increment_counter('photo')
         photo_filename = self._photo_path / f"{self._photo_name}_{self._photo_counter}.png"
-        cv2.imwrite(photo_filename, frame)
+        cv2.imwrite(str(photo_filename), frame)
         if verbose:
             print(f"Photo saved as {photo_filename}")
 
-    def _increment_photo_counter(self, value: int = 1) -> None:
+    def _increment_counter(self, option: str= 'photo', value: int = 1) -> None:
         """
         Update the photo counter
 
         Args:
+            option (str): photo or video
             n (int): counter increment
         """
-        self._photo_counter += value
+        if option == 'photo':
+            self._photo_counter += value
+        elif option == 'video':
+            self._video_counter += value
+        else:
+            raise ValueError('Incorrect option. ')
 
     # ----- public methods
 
@@ -380,7 +385,8 @@ class BaseCamera(BaseSensor):
         """
         if not self._is_init():
             return
-        print("Press 'q' key to stop the live video feed.")
+        if verbose:
+            print("Press 'q' key to stop the live video feed.")
         while True:
             frame = self.read()
             cv2.imshow(f'{self._name} live streaming', frame)
@@ -398,6 +404,37 @@ class BaseCamera(BaseSensor):
         """
         Record a video from the camera.
         """
+
+    # TODO
+    def record_video_standar(self, ending: str = 'avi', duration: int = 5, verbose: bool = False) -> None:
+        """
+        """
+        if not self._is_init():
+            return
+        
+        self._increment_counter('video')
+        filepath = self._video_path / f"{self._video_name}_{self._video_counter}.{ending}"
+        
+        out = cv2.VideoWriter(str(filepath), cv2.VideoWriter_fourcc(*'MJPG'), 20.0, (640, 480))
+        
+        while True:
+            frame = self.read()
+
+            out.write(frame)
+
+            cv2.imshow('Frame', frame)
+
+            key = cv2.waitKey(1) & 0xFF
+            if key == ord('q'):  # ASCII code for 'q'
+                # quit
+                break
+            if key == 32 or key == ord('s') or key == ord('S'):  # Space key or 's' key
+                # save photo
+                self._save_photo(frame, verbose)
+        out.release()
+        cv2.destroyAllWindows()
+
+
 
     def release(self) -> None:
         """
