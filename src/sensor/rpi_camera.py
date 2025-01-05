@@ -89,8 +89,8 @@ class RPiCamera(BaseCamera):
         #                                                           sensor={"output_size": mode['size'],
         #                                                                 "bit_depth": mode['bit_depth']})
         # camera_config = self._camera.create_preview_configuration(main={"size": (640, 480)})
-        camera_config = self._camera.create_video_configuration(main={"format": "RGB888", "size": self._resolution, "preserve_ar": True},
-                                                                controls = {"NoiseReductionMode": 1, "FrameDurationLimits": (4444, 8888)})
+        camera_config = self._camera.create_video_configuration(main={"format": "RGB888", "size": self._resolution, "preserve_ar": False},
+                                                                controls = {"NoiseReductionMode": 0, "FrameDurationLimits": (33333, 33333)})
         print(camera_config)
         self._camera.configure(camera_config)
         # self._camera.set_controls({"ExposureMode": "off"})

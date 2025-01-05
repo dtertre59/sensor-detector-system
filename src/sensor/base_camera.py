@@ -82,6 +82,7 @@ class BaseCamera(BaseSensor):
 
         self.__output_video = None
         self.__video_recorder_flag = 0
+        self.__framerate = 0
 
     # ----- Properties and Setters
 
@@ -363,9 +364,9 @@ class BaseCamera(BaseSensor):
             self._increment_counter('video')
             filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
             codec = cv2.VideoWriter_fourcc(*'mp4v')
-            framerate = 60
             # Create a VideoWriter object for writing the output video
-            self.__output_video = cv2.VideoWriter(str(filepath), codec, framerate, self._resolution)
+            fps = 25
+            self.__output_video = cv2.VideoWriter(str(filepath), codec, fps, self._resolution)
             self.__video_recorder_flag = 1
             if verbose:
                 print('Video recording ...')
@@ -444,6 +445,7 @@ class BaseCamera(BaseSensor):
             # Calculate FPS
             current_time = time.time()
             fps = 1 / (current_time - prev_time)
+            self.__framerate=fps # se puede quitar esta variables TODO
             prev_time = current_time
             
             cv2.putText(frame, f"FPS: {fps:.2f}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)

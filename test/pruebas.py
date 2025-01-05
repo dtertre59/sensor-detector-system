@@ -3,7 +3,7 @@
 import cv2
 
 # Ruta del archivo .avi
-archivo_mp4 = 'data/videos/samples/video_1.mp4'
+archivo_mp4 = 'data/videos/samples/brass_11.mp4'
 
 cap = cv2.VideoCapture(archivo_mp4)
 
@@ -12,6 +12,7 @@ if not cap.isOpened():
     print("Error al abrir el archivo de video.")
     exit()
 
+frame_c = 0
 while True:
     # Leer un cuadro del video
     ret, frame = cap.read()
@@ -27,7 +28,8 @@ while True:
     # Salir si se presiona la tecla 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    key = input('a')
+    key = input(frame_c)
+    frame_c += 1
     if key == 'q':
         break
 
