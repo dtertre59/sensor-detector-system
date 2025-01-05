@@ -2,6 +2,7 @@
 camera.py
 """
 
+import time
 from pathlib import Path
 import numpy as np
 import cv2
@@ -361,7 +362,7 @@ class BaseCamera(BaseSensor):
             self._increment_counter('video')
             filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
             codec = cv2.VideoWriter_fourcc(*'mp4v')
-            framerate = 60
+            framerate = 30
             resolution = (640, 480)
             # Create a VideoWriter object for writing the output video
             self.__output_video = cv2.VideoWriter(str(filepath), codec, framerate, resolution)
@@ -369,7 +370,8 @@ class BaseCamera(BaseSensor):
             if verbose:
                 print('Video recording ...')
         elif self.__video_recorder_flag == 1:
-            self.__output_video.write(frame)
+            resized_frame = cv2.resize(frame, (640, 480))
+            self.__output_video.write(resized_frame)
             cv2.putText(frame, 'Recording video ...', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         elif self.__video_recorder_flag == -1:
             self.__output_video.release()
@@ -426,6 +428,10 @@ class BaseCamera(BaseSensor):
         
         self.__video_recorder_flag = 0
 
+        # Initialize variables for FPS calculation
+        fps = 0
+        prev_time = time.time()
+
         if verbose:
             print("Press 'q' key to stop the live video feed.")
         while True:
@@ -434,6 +440,15 @@ class BaseCamera(BaseSensor):
             # start/stop video recording
             if self.__video_recorder_flag != 0:
                 self._record_video(frame, verbose)
+
+            # Calculate FPS
+            current_time = time.time()
+            fps = 1 / (current_time - prev_time)
+            prev_time = current_time
+            
+            print(frame.shape)
+            cv2.putText(frame, f"FPS: {fps:.2f}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+
 
             cv2.imshow(f'{self._name} live streaming', frame)
 

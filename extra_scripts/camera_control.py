@@ -6,13 +6,13 @@ from src.factory import SensorFactory
 from src.sensor.sensor_type import SensorType
 from src.sensor.base_camera import BaseCamera
 
-# path = 'data/images/samples/'
-
 
 def main():
-    """ main function """
-    camera: BaseCamera  = SensorFactory.create(SensorType.RPI_CAMERA)
-    camera.video_name = 'video_brass'
+    """
+    main function
+    """
+    camera: BaseCamera = SensorFactory.create(SensorType.COMPUTER_CAMERA)
+    camera.video_name = 'video'
     camera.initialize()
     camera.stream_video(True)
     camera.release()
