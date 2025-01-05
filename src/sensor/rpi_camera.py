@@ -85,11 +85,17 @@ class RPiCamera(BaseCamera):
         """
         self._camera = Picamera2()
         mode = self._camera.sensor_modes[0]
-        camera_config = self._camera.create_preview_configuration(main={"format": "RGB888"},
-                                                                  sensor={"output_size": mode['size'],
-                                                                        "bit_depth": mode['bit_depth']})
+        # camera_config = self._camera.create_preview_configuration(main={"format": "RGB888"},
+        #                                                           sensor={"output_size": mode['size'],
+        #                                                                 "bit_depth": mode['bit_depth']})
+        # camera_config = self._camera.create_preview_configuration(main={"size": (640, 480)})
+        camera_config = self._camera.create_video_configuration(main={"format": "RGB888", "size": self._resolution, "preserve_ar": True},
+                                                                controls = {"NoiseReductionMode": 1, "FrameDurationLimits": (4444, 8888)})
+        print(camera_config)
         self._camera.configure(camera_config)
-        input(self._camera.sensor_modes)
+        # self._camera.set_controls({"ExposureMode": "off"})
+        # self._camera.set_controls({"AwbMode": "off"})
+
         self._camera.start()
 
         if not self._camera:

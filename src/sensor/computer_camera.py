@@ -90,6 +90,7 @@ class ComputerCamera(BaseCamera):
         # if not self._is_init():
         #     return
         ret, frame = self._camera.read()
+        frame = cv2.resize(frame, self._resolution)
         if not ret:
             raise ComputerCameraException("Failed to grab frame.")
         return frame

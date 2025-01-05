@@ -77,6 +77,7 @@ class BaseCamera(BaseSensor):
         self._video_counter = obtain_filenames_last_number(self._video_path, self._video_name, verbose=False)
 
         self._camera = None
+        self._resolution = (640, 640)
         self._camera_config = None
 
         self.__output_video = None
@@ -362,16 +363,14 @@ class BaseCamera(BaseSensor):
             self._increment_counter('video')
             filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
             codec = cv2.VideoWriter_fourcc(*'mp4v')
-            framerate = 30
-            resolution = (640, 480)
+            framerate = 60
             # Create a VideoWriter object for writing the output video
-            self.__output_video = cv2.VideoWriter(str(filepath), codec, framerate, resolution)
+            self.__output_video = cv2.VideoWriter(str(filepath), codec, framerate, self._resolution)
             self.__video_recorder_flag = 1
             if verbose:
                 print('Video recording ...')
         elif self.__video_recorder_flag == 1:
-            resized_frame = cv2.resize(frame, (640, 480))
-            self.__output_video.write(resized_frame)
+            self.__output_video.write(frame)
             cv2.putText(frame, 'Recording video ...', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         elif self.__video_recorder_flag == -1:
             self.__output_video.release()
@@ -396,6 +395,7 @@ class BaseCamera(BaseSensor):
         Initializes the camera.
         """
 
+    # REVIEW 
     def read(self) -> np.ndarray:
         """
         Captures an image from the camera.
@@ -446,7 +446,6 @@ class BaseCamera(BaseSensor):
             fps = 1 / (current_time - prev_time)
             prev_time = current_time
             
-            print(frame.shape)
             cv2.putText(frame, f"FPS: {fps:.2f}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
 

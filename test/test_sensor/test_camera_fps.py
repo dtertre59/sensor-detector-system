@@ -43,7 +43,8 @@ def main():
     """
     main
     """
-    test_computer_camera()
+    # test_computer_camera()
+    test_rpi_camera()
 
 
 if __name__ == '__main__':
