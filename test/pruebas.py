@@ -3,7 +3,7 @@
 import cv2
 
 # Ruta del archivo .avi
-archivo_mp4 = 'data/videos/samples/output_webcam.mp4'
+archivo_mp4 = 'data/videos/samples/video_brass_3.mp4'
 
 cap = cv2.VideoCapture(archivo_mp4)
 
@@ -27,6 +27,7 @@ while True:
     # Salir si se presiona la tecla 'q'
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+    input('a')
 
 # Liberar el objeto de captura y cerrar las ventanas
 cap.release()

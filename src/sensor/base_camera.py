@@ -69,11 +69,11 @@ class BaseCamera(BaseSensor):
 
         self._photo_path = photo_path
         self._photo_name = photo_name
-        self._photo_counter = obtain_filenames_last_number(self._photo_path, self._photo_name)
+        self._photo_counter = obtain_filenames_last_number(self._photo_path, self._photo_name, verbose=False)
 
         self._video_path = video_path
         self._video_name = video_name
-        self._video_counter = obtain_filenames_last_number(self._video_path, self._video_name)
+        self._video_counter = obtain_filenames_last_number(self._video_path, self._video_name, verbose=False)
 
         self._camera = None
         self._camera_config = None
@@ -213,6 +213,7 @@ class BaseCamera(BaseSensor):
         """
         if not isinstance(value, str):
             raise CameraException("The name of the photo must be a string.")
+        self._photo_counter = obtain_filenames_last_number(self._photo_path, value)
         self._photo_name = value
 
     @property
@@ -279,6 +280,7 @@ class BaseCamera(BaseSensor):
         """
         if not isinstance(value, str):
             raise CameraException("The name of the video must be a string.")
+        self._video_counter = obtain_filenames_last_number(self._video_path, value)
         self._video_name = value
 
     @property
@@ -359,14 +361,14 @@ class BaseCamera(BaseSensor):
             self._increment_counter('video')
             filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
             codec = cv2.VideoWriter_fourcc(*'mp4v')
-            framerate = 30
+            framerate = 60
             resolution = (640, 480)
             # Create a VideoWriter object for writing the output video
             self.__output_video = cv2.VideoWriter(str(filepath), codec, framerate, resolution)
             self.__video_recorder_flag = 1
-        elif self.__video_recorder_flag == 1:
             if verbose:
                 print('Video recording ...')
+        elif self.__video_recorder_flag == 1:
             self.__output_video.write(frame)
             cv2.putText(frame, 'Recording video ...', (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         elif self.__video_recorder_flag == -1:

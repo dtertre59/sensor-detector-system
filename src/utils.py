@@ -32,12 +32,18 @@ def get_directory_filepaths(directory: Path) -> list[Path]:
         return []
     
 
-def obtain_filenames_last_number(directory: Path, name: str) -> int:
+def obtain_filenames_last_number(directory: Path, name: str, verbose: bool = False) -> int:
     """
     Obtain last number
     """
     filenames = os.listdir(directory)
+    if verbose:
+        print('Directory:', directory)
+        print('Name:', name)
+        print(filenames)
     numbers = [int(filename.split('_')[-1].split('.')[0]) for filename in filenames if filename.startswith(f'{name}_')]
+    if verbose:
+        print(numbers)
     if not numbers:
         return 0
     return max(numbers)

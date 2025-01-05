@@ -6,7 +6,7 @@ from src.factory import SensorFactory
 from src.sensor.sensor_type import SensorType
 from src.sensor.base_camera import BaseCamera
 
-path = 'data/images/samples/'
+# path = 'data/images/samples/'
 
 
 def main():
@@ -14,7 +14,8 @@ def main():
     camera: BaseCamera  = SensorFactory.create(SensorType.RPI_CAMERA)
     camera.video_name = 'video_brass'
     camera.initialize()
-    camera.stream_video()
+    camera.stream_video(True)
+    camera.release()
 
 
 if __name__ == '__main__':

@@ -68,7 +68,8 @@ class RPiCamera(BaseCamera):
             video_path (Path): The path to save videos.
             video_name (str): The name of the video.
         """
-        super().__init__(name, s_type=SensorType.RPI_CAMERA, photo_path=photo_path, photo_name=photo_name,
+        super().__init__(name, s_type=SensorType.RPI_CAMERA, 
+                         photo_path=photo_path, photo_name=photo_name,
                          video_path=video_path, video_name=video_name)
 
     # ----- protected methods
@@ -83,9 +84,12 @@ class RPiCamera(BaseCamera):
             RPiCameraException: If there is an error opening the rpi's cam.
         """
         self._camera = Picamera2()
-        camera_config = self._camera.create_preview_configuration(main={"format": "RGB888",
-                                                                        "size": (640, 480)})
+        mode = self._camera.sensor_modes[0]
+        camera_config = self._camera.create_preview_configuration(main={"format": "RGB888"},
+                                                                  sensor={"output_size": mode['size'],
+                                                                        "bit_depth": mode['bit_depth']})
         self._camera.configure(camera_config)
+        input(self._camera.sensor_modes)
         self._camera.start()
 
         if not self._camera:
