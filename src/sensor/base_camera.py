@@ -365,7 +365,7 @@ class BaseCamera(BaseSensor):
             filepath = self._video_path / f"{self._video_name}_{self._video_counter}.mp4"
             codec = cv2.VideoWriter_fourcc(*'mp4v')
             # Create a VideoWriter object for writing the output video
-            fps = 25
+            fps = 29
             self.__output_video = cv2.VideoWriter(str(filepath), codec, fps, self._resolution)
             self.__video_recorder_flag = 1
             if verbose:
