@@ -77,7 +77,7 @@ class BaseCamera(BaseSensor):
         self._video_counter = obtain_filenames_last_number(self._video_path, self._video_name, verbose=False)
 
         self._camera = None
-        self._resolution = (640, 640)
+        self._resolution = (640, 480)
         self._camera_config = None
 
         self.__output_video = None
