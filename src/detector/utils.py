@@ -6,6 +6,7 @@ utils.py
 import numpy as np
 import cv2
 
+
 def reduce_noise(image: np.ndarray, ksize: tuple = (31, 31)) -> np.ndarray:
     """
     Reduce noise in the image using Gaussian blur.
@@ -23,7 +24,7 @@ def reduce_noise(image: np.ndarray, ksize: tuple = (31, 31)) -> np.ndarray:
 
 
 # Delete small labels
-def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135) -> np.ndarray:
+def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135, verbose: bool = False) -> np.ndarray:
     """
     Delete small labels
 
@@ -35,7 +36,8 @@ def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135) -> np.nda
             np.ndarray: The filtered image."""
     num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(thresh_image)
     # Shoe the number of detected objects
-    print(f'Número de objetos detectados: {num_labels - 1}')  # Rest the background
+    if verbose:
+        print(f'Number of detected ogjects: {num_labels - 1}')  # Rest the background
     # Create a new image for large components
     filtered_image = np.zeros_like(thresh_image)
 
@@ -43,24 +45,29 @@ def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135) -> np.nda
     for label in range(1, num_labels):  # Skip the background (label 0)
         area = stats[label, cv2.CC_STAT_AREA]
         if area >= min_area:
-            print(area)
+            if verbose:
+                print(f'Object {label} Area:', area)
             # If the area is greater than the threshold, keep the component
             filtered_image[labels == label] = 255  # Assign the white value to the large components
     return filtered_image
 
 
-def segment(gray_image: np.ndarray, min_area: int = 135) -> np.ndarray:
+def segment(gray_image: np.ndarray, min_area: int = 135, verbose: bool = False) -> np.ndarray:
     """
     segment Image
 
     Mode 1
     """
-    # Apply binary threshold
-    _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # Apply binary threshold Automatic
+    # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
+    # binary threshold Manual setting the threshold
+    threshold = 200
+    _, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
+
     # reverse
-    inverted_thresh = cv2.bitwise_not(thresh)
+    # inverted_thresh = cv2.bitwise_not(thresh)
     # Delete small labels
-    thresh = delete_small_labels(inverted_thresh, min_area)
+    thresh = delete_small_labels(thresh, min_area, verbose)
 
     return thresh
 

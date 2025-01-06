@@ -1,14 +1,11 @@
 """
-test_base_piece.py
+test_tracker.py
 """
 import cv2
 
 from src.utils import show_image
 from src.tracker import Tracker
 from src.piece.piece import Piece
-
-
-
 
 
 def test_instances():
@@ -137,9 +134,6 @@ def test_draw():
 
     tracker.draw(image)
     show_image(image)
-
-
-
 
 
 def main():

@@ -199,7 +199,7 @@ class Piece:
         Returns:
             list: A list of dictionaries with area and time.
         """
-        return self.areas
+        return self._areas
 
     @areas.setter
     def areas(self, value: list[dict[str, int]]) -> None:
@@ -251,8 +251,8 @@ class Piece:
         Returns:
             str: A string representation of the BasePiece instance.
         """
-        return (f"BasePiece(name={self._name}, category={self._category}, mean_colors={self._mean_colors}, "
-                f"positions={self._positions}), areas={self._areas}, speed={self._speed})")
+        return (f"BasePiece(name={self._name}, category={self._category}, bbox={self._bbox}, mean_colors="
+                f"{self._mean_colors}, positions={self._positions}), areas={self._areas}, speed={self._speed})")
 
     def __str__(self):
         """
@@ -261,8 +261,8 @@ class Piece:
         Returns:
             str: A user-friendly string representation of the BasePiece instance.
         """
-        return (f"Piece: {self._name}, Category: {self._category}, Mean Colors: {self._mean_colors}, "
-                f"Positions: {self._positions}, Areas: {self._areas}, Speed: {self._speed}")
+        return (f"Piece: {self._name}, Category: {self._category}, bbox: {self._bbox}, Mean Colors: "
+                f"{self._mean_colors}, Positions: {self._positions}, Areas: {self._areas}, Speed: {self._speed}")
 
     # ----- Bounding box functions
 
@@ -406,7 +406,8 @@ class Piece:
             self.bbox = piece.bbox
         self._mean_colors.append(piece.mean_colors[-1])
         self._positions.append(piece.positions[-1])
-        self._areas.append(piece.areas[-1])
+        if len(piece.areas) > 0:
+            self._areas.append(piece.areas[-1])
         self._speed = self.calculate_speed()
 
     def draw(self, image: np.ndarray, track: bool = False) -> None:

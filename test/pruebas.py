@@ -3,7 +3,7 @@
 import cv2
 
 # Ruta del archivo .avi
-archivo_mp4 = 'data/videos/samples/brass_1.mp4'
+archivo_mp4 = 'data/videos/samples/brass_3.mp4'
 
 cap = cv2.VideoCapture(archivo_mp4)
 

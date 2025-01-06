@@ -13,7 +13,7 @@ class Tracker:
     Class Tracker to track pieces in an image.
     """
 
-    def __init__(self, x_min: float = 0, x_max: float = 640, y_max: float = 640, tolerance: float = 0.05):
+    def __init__(self, x_min: float = 0, x_max: float = 450, y_max: float = 640, tolerance: float = 0.05):
         """
         Initialize the Tracker instance. TODO
         """
@@ -111,6 +111,11 @@ class Tracker:
         Args:
             image (MatLike): The image to draw the tracks on.
         """
+        # TODO
+        # Red line. Limit
+        start_point = (self._x_max, 0)
+        end_point = (self._x_max, image.shape[0])
+        cv2.line(image, start_point, end_point, (0, 0, 255), 2)
         for piece in self._pieces:
             piece.draw(image, track=True)
 
