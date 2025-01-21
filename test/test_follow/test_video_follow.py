@@ -1,13 +1,13 @@
 """
 test_video_follow.py
 """
+import time
 import cv2
 
 from src.utils import show_image
 from src.detector.color_detector import ColorDetector
 from src.tracker import Tracker
 from src.piece.piece import Piece
-
 
 
 def test_image_follow() -> None:
@@ -38,8 +38,7 @@ def test_image_follow() -> None:
         print('last position', piece.get_last_positon())
 
 
-
-def test_video_follow() -> None:
+def test_video_follow_stopping() -> None:
     """
     test
     """
@@ -80,11 +79,52 @@ def test_video_follow() -> None:
     cv2.destroyAllWindows()
 
 
+def test_video_follow() -> None:
+    """
+    test
+    """
+    detector = ColorDetector()
+    tracker = Tracker()
+
+    # Ruta del archivo .avi
+    archivo_mp4 = 'data/videos/samples/full_video_5.mp4'
+    cap = cv2.VideoCapture(archivo_mp4)
+    # Verificar si se abrió correctamente
+    if not cap.isOpened():
+        print("Error al abrir el archivo de video.")
+        exit()
+
+    # Bucle de imagenes
+    while True:
+        # Leer un cuadro del video
+        ret, frame = cap.read()
+        # Si no se puede leer un cuadro, terminamos
+        if not ret:
+            print("Fin del video.")
+            break
+
+        pieces = detector.detect(frame, verbose=False)
+        tracker.update(pieces)
+        tracker.draw(frame)
+
+        # Mostrar el cuadro
+        cv2.imshow('Video', frame)
+
+        # Salir si se presiona la tecla 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        time.sleep(0.08)
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+
 def main():
     """
     main
     """
     # test_image_follow()
+    # test_video_follow_stopping()
     test_video_follow()
 
 

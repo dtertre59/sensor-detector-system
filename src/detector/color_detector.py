@@ -97,9 +97,22 @@ class ColorDetector(BaseDetector):
         threshold_image = utils.segment(gray_image, self._min_area, verbose)
         # ut.show_image(threshold_image)
 
+
         # Find connected components
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
         # ut.show_image(threshold_image)
+
+        # Morphological operations to unite close components
+        kernel = np.ones((25, 25), np.uint8)  # You can adjust the kernel size as needed
+        dilated_image = cv2.dilate(threshold_image, kernel, iterations=1)
+        eroded_image = cv2.erode(dilated_image, kernel, iterations=1)
+        threshold_image = eroded_image.copy()
+        
+        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
+        # ut.show_image(threshold_image)
+
+        cv2.imshow('Video threshold', threshold_image)
+        cv2.waitKey(1)
 
         # Create Pieces
         pieces: list[Piece] = []

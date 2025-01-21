@@ -61,7 +61,7 @@ def segment(gray_image: np.ndarray, min_area: int = 135, verbose: bool = False) 
     # Apply binary threshold Automatic
     # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
     # binary threshold Manual setting the threshold
-    threshold = 200
+    threshold = 90
     _, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
 
     # reverse
