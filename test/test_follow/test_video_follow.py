@@ -47,7 +47,7 @@ def test_video_follow() -> None:
     tracker = Tracker()
 
     # Ruta del archivo .avi
-    archivo_mp4 = 'data/videos/samples/brass_3.mp4'
+    archivo_mp4 = 'data/videos/samples/full_video_2.mp4'
     cap = cv2.VideoCapture(archivo_mp4)
     # Verificar si se abrió correctamente
     if not cap.isOpened():
@@ -73,9 +73,9 @@ def test_video_follow() -> None:
         # Salir si se presiona la tecla 'q'
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-        key = input()
-        if key == 's':
-            cv2.imwrite('data/images/samples/photo.png', frame)
+        # key = input()
+        # if key == 's':
+        #     cv2.imwrite('data/images/samples/photo.png', frame)
     cap.release()
     cv2.destroyAllWindows()
 

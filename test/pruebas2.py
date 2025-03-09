@@ -13,7 +13,7 @@ def main():
     cap = cv2.VideoCapture(0)
 
     # Define the output filename, codec, frame rate, and resolution for the output video
-    filename = "data/videos/samples/video.mp4"
+    filename = "data/videos/samples/full_video_1.mp4"
     codec = cv2.VideoWriter_fourcc(*'mp4v')
     framerate = 29
     resolution = (320, 240)

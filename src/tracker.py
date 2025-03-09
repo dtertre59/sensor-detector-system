@@ -3,7 +3,7 @@ tracker.py
 """
 
 import cv2
-from cv2.typing import MatLike
+# from cv2.typing import MatLike
 
 from src.piece.piece import Piece
 
@@ -104,12 +104,12 @@ class Tracker:
                     print('PIECE POP')
         return release_pieces
 
-    def draw(self, image: MatLike) -> None:
+    def draw(self, image) -> None:
         """
         Draw the tracks of the pieces on the image.
 
         Args:
-            image (MatLike): The image to draw the tracks on.
+            image: The image to draw the tracks on.
         """
         # TODO
         # Red line. Limit
