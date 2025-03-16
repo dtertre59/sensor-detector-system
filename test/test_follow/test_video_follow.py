@@ -87,7 +87,7 @@ def test_video_follow() -> None:
     tracker = Tracker()
 
     # Ruta del archivo .avi
-    archivo_mp4 = 'data/videos/samples/full_video_5.mp4'
+    archivo_mp4 = 'data/videos/samples/full_video_2.mp4'
     cap = cv2.VideoCapture(archivo_mp4)
     # Verificar si se abrió correctamente
     if not cap.isOpened():

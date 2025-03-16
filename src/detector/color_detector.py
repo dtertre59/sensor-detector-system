@@ -39,6 +39,23 @@ class ColorDetector(BaseDetector):
         self.detection_result = None
 
         self._min_area = min_area
+        self._flat_field = None
+
+    @property
+    def flat_field(self):
+        """
+        Get flat field
+        """
+        return self._flat_field
+    
+    @flat_field.setter
+    def flat_field(self, flat_field: np.ndarray):
+        """
+        Set flat field
+        """
+        noise_free_flat_field = utils.reduce_noise(flat_field, (31, 31))
+        gray_flat_field = cv2.cvtColor(noise_free_flat_field, cv2.COLOR_BGR2GRAY)
+        self._flat_field = gray_flat_field
 
     def reset(self):
         """
@@ -93,10 +110,14 @@ class ColorDetector(BaseDetector):
         # Convert to gray
         gray_image = cv2.cvtColor(noise_free_image, cv2.COLOR_BGR2GRAY)
         # ut.show_image(gray_image)
-        # Segment image
-        threshold_image = utils.segment(gray_image, self._min_area, verbose)
-        # ut.show_image(threshold_image)
 
+        # # Segment image
+        # threshold_image = utils.segment(gray_image, self._min_area, verbose)
+
+        # Segment image 2
+        threshold_image = utils.segment_2(gray_image, self._min_area, flat_field=self._flat_field, verbose=verbose)
+
+        # ut.show_image(threshold_image)
 
         # Find connected components
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
@@ -107,21 +128,26 @@ class ColorDetector(BaseDetector):
         dilated_image = cv2.dilate(threshold_image, kernel, iterations=1)
         eroded_image = cv2.erode(dilated_image, kernel, iterations=1)
         threshold_image = eroded_image.copy()
-        
+
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
         # ut.show_image(threshold_image)
 
-        cv2.imshow('Video threshold', threshold_image)
-        cv2.waitKey(1)
+        # cv2.imshow('Video threshold', threshold_image)
+        # cv2.waitKey(1)
 
         # Create Pieces
         pieces: list[Piece] = []
 
         for label in range(1, num_labels):
             x, y, w, h, area = stats[label]
-            mean_color = utils.get_mean_color_from_image(threshold_image, image)
-            position = utils.get_gravity_center(threshold_image)
-            piece = Piece(name='piece', bbox=(int(x), int(y), int(w), int(h)), mean_color=mean_color,
+
+            # Why? TODO - Check
+            # mean_color = utils.get_mean_color_from_image(threshold_image, image)
+            # position = utils.get_gravity_center(threshold_image)
+            mean_color = None
+            position = None
+
+            piece = Piece(id=0, name='piece', bbox=(int(x), int(y), int(w), int(h)), mean_color=mean_color,
                           position=position, area=int(area))
             piece.add_mean_color(utils.get_mean_color_from_label(label, labels, image))
             piece.add_position(tuple(map(int, centroids[label])))

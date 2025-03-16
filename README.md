@@ -119,3 +119,20 @@ Recoleccion de imagenes diferentes, sabiendo el material que hay en cada una. Et
 Cuando Tenemos una muestra considerable de imagenes tenemos definido el algoritmo de determinacion del color medio de una imagen, se debe sacar el color medio de todas las imagenes en conjunto, y asi sabremos el color medio del material.
 
 Sabiendo el color medio de los diferentes materiales, cuando pasemos una foto y calculemos el color medio, elegiremos el material al que pertenece segun a cual color medio se aproxima mas.
+
+## Segmentacion de la imagen: Fondo negro, objetos en blanco.
+
+Problema al no tener la misma iluminacion de manera uniforme.
+
+Ajustes necesarios:
+
+    1. compensacion. Tener una imagen sin objetos y restarsela a la de con objetos. Para asi compensar la luz desigual.
+    
+
+## Opciones cuando una pieza se divide en 2 o mas piezas.
+
+Como detectar el suceso?
+
+1. Mas de una opcion (mas de una pieza similar)
+
+2. Una pieza dentro del cubo de otra.

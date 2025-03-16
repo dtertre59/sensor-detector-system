@@ -27,7 +27,6 @@ class Factory(ABC):
     Methods:
         create(object_type: Enum) -> Any: Create a new instance of a product.
     """
-    # TODO
     @staticmethod
     @abstractmethod
     def create(object_type: Enum) -> Any:

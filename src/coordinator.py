@@ -10,7 +10,14 @@ import cv2
 
 from src.sensor.computer_camera import ComputerCamera
 from src.detector.color_detector import ColorDetector
-# from src.factory import Factory
+
+from src.tracker import Tracker
+
+from src.transmitter import Transmitter
+
+from src.factory import SensorFactory, DetectorFactory
+from src.sensor.sensor_type import SensorType
+from src.detector.detector_type import DetectorType
 
 
 class Classifier:
@@ -47,8 +54,8 @@ class PairCoordinator:
         self.sensor = ComputerCamera()
         self.detector = ColorDetector()
 
-        self.sensor_queue = queue.Queue(maxsize=2)
-        self.detector_queue = queue.Queue(maxsize=2)
+        self.sensor_queue = queue.Queue(maxsize=100)
+        self.detector_queue = queue.Queue(maxsize=100)
 
         self.stop_event = threading.Event()
         # self.lock = threading.Lock()
@@ -74,7 +81,7 @@ class PairCoordinator:
             try:
                 time.sleep(0.1)
                 data = self.sensor_queue.get(timeout=1)
-                print('detector')
+                # print('detector')
                 detection = self.detector.detect(data)
                 self.detector_queue.put(detection, timeout=1)
                 # print(1)
@@ -88,17 +95,16 @@ class PairCoordinator:
         a key is pressed.
         """
         while not self.stop_event.is_set():
-            if self.sensor._name == 'Computer Camera':
-                frame = self.sensor_queue.get()
-                cv2.imshow('Computer CAM live video feed', frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    self.stop_event.set()
-                    print("Stopping coordinator...")
-                    return -1
+            # if self.sensor._name == 'Computer Camera':
+            #     frame = self.sensor_queue.get()
+            #     cv2.imshow('Computer CAM live video feed', frame)
+            #     if cv2.waitKey(1) & 0xFF == ord('q'):
+            #         self.stop_event.set()
+            #         print("Stopping coordinator...")
+            #         return -1
             if self.detector:
-                data = self.detector_queue.get()
-                cv2.imshow('detector', data)
-            
+                pieces = self.detector_queue.get()
+                print('Pieces:', [piece.name for piece in pieces])
 
         # if self.detector:
         #     detection = self.detector_queue.get()
@@ -121,5 +127,68 @@ class PairCoordinator:
         detector_thread.join()
         sensor_thread.join()
 
+        cv2.destroyAllWindows()
+        print("Coordinator stopped.")
+
+
+class Coordinator:
+    """
+    Coordinator class
+    """
+    def __init__(self, sensor_name: str = 'computer_camera', detector_name: str = 'color_detector',
+                 host: str = 'localhost', port: int = 5001):
+        """
+        Coordinator constructor
+        """
+        self.sensor = SensorFactory.create(SensorType(sensor_name))
+        self.detector = DetectorFactory.create(DetectorType(detector_name))
+
+        self.tracker = Tracker()
+
+        self.transmitter = Transmitter(host, port)
+
+    def run(self) -> None:
+        """
+        Run the coordinator
+        """
+        self.sensor.initialize()
+        self.detector.initialize()
+
+        self.transmitter.initialize()
+
+        while True:
+            frame = self.sensor.read()
+            pieces = self.detector.detect(frame)
+            released_pieces = self.tracker.update_3(pieces)
+
+            # Send the released pieces to the peers
+            if released_pieces:
+                print('Released pieces:', [released_piece.name for released_piece in released_pieces])
+                for piece in released_pieces:
+                    self.transmitter.send_piece(piece.name)
+                    print('Sent:', piece.name)
+
+            # Draw the tracker
+            self.tracker.draw(frame)
+            cv2.imshow('Video', frame)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        self.sensor.release()
+        self.detector.release()
+        cv2.destroyAllWindows()
 
         print("Coordinator stopped.")
+
+
+
+if __name__ == '__main__':
+
+    # ----- pair Coordinator with threads
+    # coordinator = PairCoordinator()
+    # coordinator.run_t()
+
+    # ----- Coordinator
+    coordinator = Coordinator()
+    coordinator.run()

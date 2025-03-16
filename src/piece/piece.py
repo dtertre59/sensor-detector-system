@@ -30,13 +30,14 @@ class Piece:
         update: Update with other piece.
     """
 
-    def __init__(self, name: str | None = None, category: str | None = None, bbox: tuple | None = None,
+    def __init__(self, id: int, name: str | None = None, category: str | None = None, bbox: tuple | None = None,
                  mean_color: tuple | None = None, position: tuple | None = None, area: int | None = None,
                  speed: float | None = None):
         """
         Initialize a BasePiece instance.
 
         Args:
+            id (int): The id of the piece.
             name (str): The name of the piece.
             category (str): The category of the piece.
             bbox (tuple): (x, y, w, h).
@@ -46,6 +47,7 @@ class Piece:
             speed (tuple): The speed of the piece as a tuple of two numbers (vx, vy).
         """
 
+        self._id = id
         self._name = name
         self._category = category
         self._bbox = bbox
@@ -63,6 +65,31 @@ class Piece:
             self.add_area(area)
 
         self._speed = speed
+
+    @property
+    def id(self) -> str:
+        """
+        Get the id of the piece.
+
+        Returns:
+            int: The id of the piece.
+        """
+        return self._id
+
+    @id.setter
+    def id(self, value: str) -> None:
+        """
+        Set the id of the piece.
+
+        Args:
+            value (int): The id of the piece.
+
+        Raises:
+            ValueError: If the id is not an int.
+        """
+        if not isinstance(value, int):
+            raise ValueError("Name must be an int")
+        self._id = value
 
     @property
     def name(self) -> str:
@@ -360,6 +387,26 @@ class Piece:
         if not isinstance(area, int):
             raise ValueError("Area must be an integer")
         self._areas.append({'area': area, 'time': time.time()})
+
+    def calculate_area(self) -> int:
+        """
+        Calculate the overall area using all areas.
+
+        Returns:
+            int: The overall area in pixels.
+
+        Raises:
+            ValueError: If there are no areas available.
+        """
+        if self._areas == []:
+            raise ValueError("No areas available")
+
+        total_area = 0
+        for entry in self._areas:
+            total_area += entry['area']
+
+        count = len(self._areas)
+        return total_area // count  # redondea el resultado hacia abajo al mas cercano
 
     # ----- Speed functions
 

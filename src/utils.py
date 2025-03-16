@@ -47,3 +47,9 @@ def obtain_filenames_last_number(directory: Path, name: str, verbose: bool = Fal
     if not numbers:
         return 0
     return max(numbers)
+
+def get_distance(p1: tuple, p2: tuple) -> float:
+    """
+    get distance
+    """
+    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5

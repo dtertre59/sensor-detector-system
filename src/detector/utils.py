@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 
 
+# Reduce noise
 def reduce_noise(image: np.ndarray, ksize: tuple = (31, 31)) -> np.ndarray:
     """
     Reduce noise in the image using Gaussian blur.
@@ -24,7 +25,7 @@ def reduce_noise(image: np.ndarray, ksize: tuple = (31, 31)) -> np.ndarray:
 
 
 # Delete small labels
-def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135, verbose: bool = False) -> np.ndarray:
+def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135, verbose: bool = True) -> np.ndarray:
     """
     Delete small labels
 
@@ -61,8 +62,10 @@ def segment(gray_image: np.ndarray, min_area: int = 135, verbose: bool = False) 
     # Apply binary threshold Automatic
     # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
     # binary threshold Manual setting the threshold
-    threshold = 90
+    threshold = 180
     _, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
+
+    # threshold_image = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
 
     # reverse
     # inverted_thresh = cv2.bitwise_not(thresh)
@@ -71,6 +74,35 @@ def segment(gray_image: np.ndarray, min_area: int = 135, verbose: bool = False) 
 
     return thresh
 
+
+def segment_2(gray_image: np.ndarray, min_area: int = 135, flat_field: np.ndarray = None, verbose: bool = False) -> np.ndarray:
+    """
+    segment Image
+
+    Mode 1
+    """
+
+    if flat_field is not None:
+        difference = cv2.absdiff(gray_image, flat_field)
+        # ut.show_image(difference)
+        # Threshold
+        thresh = 20
+        _, threshold = cv2.threshold(difference, thresh, 255, cv2.THRESH_BINARY)
+    else:
+        # Apply binary threshold Automatic
+        # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
+        # binary threshold Manual setting the threshold
+        thresh = 150
+        _, threshold = cv2.threshold(gray_image, thresh, 255, cv2.THRESH_BINARY)
+
+    # threshold_image = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
+
+    # reverse
+    # inverted_thresh = cv2.bitwise_not(thresh)
+    # Delete small labels
+    threshold = delete_small_labels(threshold, min_area, verbose)
+
+    return threshold
 
 # def segment_image_m1(gray_image: np.ndarray) -> np.ndarray:
 #     """
