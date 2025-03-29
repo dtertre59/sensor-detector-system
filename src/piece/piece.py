@@ -3,7 +3,9 @@ piece.py
 """
 
 import time
+import json
 import numpy as np
+
 import cv2
 
 
@@ -456,6 +458,7 @@ class Piece:
         if len(piece.areas) > 0:
             self._areas.append(piece.areas[-1])
         self._speed = self.calculate_speed()
+        # self._name = piece.name
 
     def draw(self, image: np.ndarray, track: bool = False) -> None:
         """
@@ -490,3 +493,28 @@ class Piece:
         if self._bbox and self._name:
             cv2.putText(image, self._name, (self.bbox[0] + 10, self.bbox[1]-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness)
+
+    def pack(self) -> bytes:
+        """
+        Pack the piece information into a dictionary.
+
+        Returns:
+            dict: A dictionary with the piece information.
+        """
+        area = self.calculate_area()
+        position = self.get_last_positon()
+        speed = self.calculate_speed()
+        mean_color = self.calculate_mean_color()
+
+        piece_dict = {'id': self._id,
+                      'name': self._name,
+                      'category': self._category,
+                      'bbox': self._bbox,
+                      'mean_color': mean_color,
+                      'position': position,
+                      'area': area,
+                      'speed': speed,
+                      'timestamp': self.positions[-1]['time']
+                      }
+
+        return json.dumps(piece_dict).encode("utf-8")

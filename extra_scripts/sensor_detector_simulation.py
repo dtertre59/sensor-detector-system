@@ -3,11 +3,13 @@ sensor_detector_simulation.py
 """
 
 import cv2
+import struct
 
 from src.detector.color_detector import ColorDetector
 from src.tracker import Tracker
+from src.coordinator import Classifier
 
-from src.transmitter import Transmitter
+from src.transmitter import MulticastTransmitter
 
 
 def main_image_sequence():
@@ -41,14 +43,21 @@ def main_image_sequence():
     cv2.destroyAllWindows()
 
 
+class RawPiece():
+    def __init__(self, material: int, timestamp: int):
+        self.material = material
+        self.timestamp = timestamp
+
+    def pack(self) -> bytes:
+        return struct.pack('II', self.material, self.timestamp)
+
 def main_video():
     """
     main
     """
     detector = ColorDetector()
     tracker = Tracker()
-    transmitter = Transmitter("localhost", 5001)
-
+    transmitter = MulticastTransmitter('224.0.0.1', 5007)
     transmitter.initialize()
 
     # Ruta del archivo .avi
@@ -77,10 +86,21 @@ def main_video():
 
         pieces = detector.detect(frame, verbose=False)
         released_pieces = tracker.update_3(pieces, verbose=False)
+
+        for piece in tracker._pieces:
+            material = Classifier.which_material(piece.calculate_mean_color())
+            piece.name = f"{material}-{piece.id}"
+
         if released_pieces:
             print('Released pieces:', [released_piece.name for released_piece in released_pieces])
             for piece in released_pieces:
-                transmitter.send_piece(piece.name)
+                material = Classifier.which_material(piece.calculate_mean_color())
+                material_id = 0
+                if material == 'zinc':
+                    material_id = 1
+
+                data_raw = RawPiece(material_id, int(piece.positions[-1]['time'])).pack()
+                transmitter.send_multicast(data_raw)
                 print('Sent:', piece.name)
 
         tracker.draw(frame)

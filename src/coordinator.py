@@ -5,6 +5,7 @@ coordinator.py
 import threading
 import queue
 import time
+import struct
 import numpy as np
 import cv2
 
@@ -13,7 +14,8 @@ from src.detector.color_detector import ColorDetector
 
 from src.tracker import Tracker
 
-from src.transmitter import Transmitter
+# from src.transmitter import Transmitter
+from src.transmitter import MulticastTransmitter
 
 from src.factory import SensorFactory, DetectorFactory
 from src.sensor.sensor_type import SensorType
@@ -131,12 +133,22 @@ class PairCoordinator:
         print("Coordinator stopped.")
 
 
+
+class RawPiece():
+    def __init__(self, material: int, timestamp: int):
+        self.material = material
+        self.timestamp = timestamp
+
+    def pack(self) -> bytes:
+        return struct.pack('II', self.material, self.timestamp)
+
+
 class Coordinator:
     """
     Coordinator class
     """
     def __init__(self, sensor_name: str = 'computer_camera', detector_name: str = 'color_detector',
-                 host: str = 'localhost', port: int = 5001):
+                 host: str = '224.0.0.1', port: int = 5001):
         """
         Coordinator constructor
         """
@@ -145,7 +157,7 @@ class Coordinator:
 
         self.tracker = Tracker()
 
-        self.transmitter = Transmitter(host, port)
+        self.transmitter = MulticastTransmitter(host, port)
 
     def run(self) -> None:
         """
@@ -161,12 +173,24 @@ class Coordinator:
             pieces = self.detector.detect(frame)
             released_pieces = self.tracker.update_3(pieces)
 
+            # Classify the pieces
+            for piece in self.tracker._pieces:
+                material = Classifier.which_material(piece.calculate_mean_color())
+                piece.name = f"{material}-{piece.id}"
+
             # Send the released pieces to the peers
             if released_pieces:
                 print('Released pieces:', [released_piece.name for released_piece in released_pieces])
                 for piece in released_pieces:
-                    self.transmitter.send_piece(piece.name)
-                    print('Sent:', piece.name)
+
+                    material = Classifier.which_material(piece.calculate_mean_color())
+                    material_id = 0
+                    if material == 'zinc':
+                        material_id = 1
+
+                    data_raw = RawPiece(material_id, int(piece.positions[-1]['time'])).pack()
+                    self.transmitter.send_multicast(data_raw)
+                    print('Sent:', data_raw)
 
             # Draw the tracker
             self.tracker.draw(frame)
