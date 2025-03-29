@@ -132,8 +132,8 @@ class ColorDetector(BaseDetector):
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
         # ut.show_image(threshold_image)
 
-        # cv2.imshow('Video threshold', threshold_image)
-        # cv2.waitKey(1)
+        cv2.imshow('Video threshold', threshold_image)
+        cv2.waitKey(1)
 
         # Create Pieces
         pieces: list[Piece] = []

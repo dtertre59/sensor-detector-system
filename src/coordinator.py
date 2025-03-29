@@ -148,7 +148,7 @@ class Coordinator:
     Coordinator class
     """
     def __init__(self, sensor_name: str = 'computer_camera', detector_name: str = 'color_detector',
-                 host: str = '224.0.0.1', port: int = 5001):
+                 host: str = '224.0.0.1', port: int = 5007):
         """
         Coordinator constructor
         """
@@ -167,9 +167,15 @@ class Coordinator:
         self.detector.initialize()
 
         self.transmitter.initialize()
-
+        flag = True
         while True:
             frame = self.sensor.read()
+
+            # flat field
+            if flag:
+                self.detector.flat_field = frame
+                flag = False
+
             pieces = self.detector.detect(frame)
             released_pieces = self.tracker.update_3(pieces)
 
@@ -214,5 +220,5 @@ if __name__ == '__main__':
     # coordinator.run_t()
 
     # ----- Coordinator
-    coordinator = Coordinator()
+    coordinator = Coordinator('rpi_camera')
     coordinator.run()

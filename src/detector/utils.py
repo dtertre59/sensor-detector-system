@@ -81,7 +81,7 @@ def segment_2(gray_image: np.ndarray, min_area: int = 135, flat_field: np.ndarra
 
     Mode 1
     """
-
+    
     if flat_field is not None:
         difference = cv2.absdiff(gray_image, flat_field)
         # ut.show_image(difference)
