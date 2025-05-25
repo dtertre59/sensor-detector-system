@@ -12,7 +12,7 @@ def main():
     main function
     """
     camera: BaseCamera = SensorFactory.create(SensorType.RPI_CAMERA)
-    camera.video_name = 'full_video'
+    camera.video_name = 'full_video_tspeed3'
     camera.initialize()
     camera.stream_video(True)
     camera.release()
