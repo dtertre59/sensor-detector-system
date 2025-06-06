@@ -2,8 +2,9 @@
 sensor_detector_simulation.py
 """
 
-import cv2
 import struct
+
+import cv2
 
 from src.detector.color_detector import ColorDetector
 from src.tracker import Tracker
@@ -44,12 +45,21 @@ def main_image_sequence():
 
 
 class RawPiece():
+    """
+    Class Raw Piece
+    """
     def __init__(self, material: int, timestamp: int):
         self.material = material
         self.timestamp = timestamp
 
     def pack(self) -> bytes:
+        """
+        Pack the RawPiece data into bytes for transmission.
+        Resturns:
+            bytes:∫ representation of the RawPiece
+        """
         return struct.pack('II', self.material, self.timestamp)
+
 
 def main_video():
     """
@@ -61,14 +71,14 @@ def main_video():
     transmitter.initialize()
 
     # Ruta del archivo .avi
-    archivo_mp4 = 'data/videos/samples/full_video_2.mp4'
+    archivo_mp4 = 'data/videos/samples/full_video_tspeed2_1.mp4'
     cap = cv2.VideoCapture(archivo_mp4)
     # Verificar si se abrió correctamente
     if not cap.isOpened():
         print("Error opening video file.")
         exit()
 
-    flag = True
+    flag = False
 
     # Bucle de imagenes
     while True:

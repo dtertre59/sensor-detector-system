@@ -6,6 +6,8 @@ utils.py
 import numpy as np
 import cv2
 
+from src import utils as ut
+
 
 # Reduce noise
 def reduce_noise(image: np.ndarray, ksize: tuple = (31, 31)) -> np.ndarray:
@@ -53,52 +55,35 @@ def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135, verbose: 
     return filtered_image
 
 
-def segment(gray_image: np.ndarray, min_area: int = 135, verbose: bool = False) -> np.ndarray:
+# Segment image to binary
+def segment(gray_image: np.ndarray, min_area: int = 135,
+            flat_field: np.ndarray = None, verbose: bool = False) -> np.ndarray:
     """
     segment Image
 
     Mode 1
     """
-    # Apply binary threshold Automatic
-    # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
-    # binary threshold Manual setting the threshold
-    threshold = 180
-    _, thresh = cv2.threshold(gray_image, threshold, 255, cv2.THRESH_BINARY)
 
-    # threshold_image = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
-
-    # reverse
-    # inverted_thresh = cv2.bitwise_not(thresh)
-    # Delete small labels
-    thresh = delete_small_labels(thresh, min_area, verbose)
-
-    return thresh
-
-
-def segment_2(gray_image: np.ndarray, min_area: int = 135, flat_field: np.ndarray = None, verbose: bool = False) -> np.ndarray:
-    """
-    segment Image
-
-    Mode 1
-    """
-    
     if flat_field is not None:
         difference = cv2.absdiff(gray_image, flat_field)
-        # ut.show_image(difference)
         # Threshold
         thresh = 20
         _, threshold = cv2.threshold(difference, thresh, 255, cv2.THRESH_BINARY)
     else:
-        # Apply binary threshold Automatic
-        # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
         # binary threshold Manual setting the threshold
-        thresh = 150
+        thresh = 145
         _, threshold = cv2.threshold(gray_image, thresh, 255, cv2.THRESH_BINARY)
 
+        # # Apply binary threshold Automatic
+        # thresh = 0
+        # _, threshold = cv2.threshold(gray_image, thresh, 255, cv2.THRESH_OTSU)
+
+    # ut.show_image(threshold)
     # threshold_image = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 5)
 
     # reverse
     # inverted_thresh = cv2.bitwise_not(thresh)
+
     # Delete small labels
     threshold = delete_small_labels(threshold, min_area, verbose)
 
