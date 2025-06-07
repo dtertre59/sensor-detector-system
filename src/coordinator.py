@@ -25,12 +25,25 @@ from src.detector.detector_type import DetectorType
 class Classifier:
     """
     Classifer
+    BGR
     """
-
     MATERIALS = {
-        'zinc': (200, 196, 186),
-        'brass': (110, 193, 225),
-        'copper': (51, 87, 255)
+        # Dataset 1
+        # 'zinc': (200, 196, 186),
+        # 'brass': (110, 193, 225),
+        # 'copper': (51, 87, 255),
+
+        # Dataset 2
+        # "copper": (152, 180, 210),
+        # "zinc": (203, 209, 211),
+        # "brass": (157, 199, 213),
+        # "pcb": (183, 204, 192),
+
+        # Manual
+        "copper": (160, 180, 210),
+        "zinc": (185, 185, 185),
+        "brass": (160, 200, 210),
+        "pcb": (170, 204, 170)
     }
 
     @staticmethod
@@ -38,6 +51,7 @@ class Classifier:
         """
         which material it is
         """
+        print(color)
         distances = {material: np.linalg.norm(np.array(color) - np.array(m_color)) for material, m_color in Classifier.MATERIALS.items()}
         # Find the material with the smallest distance
         closest_material = min(distances, key=distances.get)
@@ -167,7 +181,9 @@ class Coordinator:
         self.detector.initialize()
 
         self.transmitter.initialize()
-        flag = True
+
+        # flat field
+        flag = False
         while True:
             frame = self.sensor.read()
 
@@ -176,7 +192,7 @@ class Coordinator:
                 self.detector.flat_field = frame
                 flag = False
 
-            pieces = self.detector.detect(frame)
+            threshold_image, pieces = self.detector.detect(frame)
             released_pieces = self.tracker.update_3(pieces)
 
             # Classify the pieces
@@ -200,7 +216,10 @@ class Coordinator:
 
             # Draw the tracker
             self.tracker.draw(frame)
-            cv2.imshow('Video', frame)
+            final_img = cv2.vconcat([threshold_image, frame])
+
+            cv2.imshow('Video', final_img)
+            cv2.moveWindow('Video', 10, 10)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break

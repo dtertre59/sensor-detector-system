@@ -412,7 +412,7 @@ class BaseCamera(BaseSensor):
             raise CameraException("Failed to grab frame.")
         return frame
 
-    def stream_video(self, verbose: bool = False) -> None:
+    def stream_video(self, show_fps: bool = False, verbose: bool = False) -> None:
         """
         Displays the live video feed from the rpi's cam.
 
@@ -448,7 +448,8 @@ class BaseCamera(BaseSensor):
             self.__framerate=fps # se puede quitar esta variables TODO
             prev_time = current_time
             
-            cv2.putText(frame, f"FPS: {fps:.2f}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+            if show_fps:
+                cv2.putText(frame, f"FPS: {fps:.2f}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
 
             cv2.imshow(f'{self._name} live streaming', frame)

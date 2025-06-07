@@ -10,7 +10,8 @@ import cv2
 import numpy as np
 import json
 
-from src.utils import get_directory_filepaths
+from src.detector.color_detector import ColorDetector
+from src.utils import get_directory_filepaths, show_image
 
 
 def export_mean_colors(mean_colors: dict[str, tuple[int, int, int]], output_file: str):
@@ -56,29 +57,34 @@ def get_mean_color_for_image(image_filename: Path) -> tuple[int, int, int]:
     """
     get_mean_color
     """
+    detector = ColorDetector()
     # 1. Load image
     image = cv2.imread(str(image_filename))
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    # noise removal
-    kernel = np.ones((3, 3), np.uint8)
-    opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-    # sure background area
-    sure_bg = cv2.dilate(opening, kernel, iterations=5)
 
-    # imagen
+    binary_mask_bgr, _ = detector.detect(image)
+
+    # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+    # # noise removal
+    # kernel = np.ones((3, 3), np.uint8)
+    # opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
+    # # sure background area
+    # sure_bg = cv2.dilate(opening, kernel, iterations=5)
+
+    # # imagen
     original_image = image.copy()
-    binary_image = sure_bg.copy()
+    # binary_image = sure_bg.copy()
 
-    # Asegurarse de que la imagen binaria es realmente binaria (0 y 255)
-    _, binary_mask = cv2.threshold(binary_image, 127, 255, cv2.THRESH_BINARY)
+    # # Asegurarse de que la imagen binaria es realmente binaria (0 y 255)
+    # _, binary_mask = cv2.threshold(binary_image, 127, 255, cv2.THRESH_BINARY)
 
     # Crear una máscara donde los píxeles negros en la binaria (valor 0) sean True
-    mask = binary_mask == 0  # Los píxeles negros son True
-
+    binary_mask = cv2.cvtColor(binary_mask_bgr, cv2.COLOR_BGR2GRAY)
+    mask = binary_mask == 255  # Los píxeles negros son True
+    # show_image(cv2.vconcat([image, binary_mask_bgr]))
     # Aplicar la máscara a la imagen original para seleccionar los píxeles relevantes
     selected_pixels = original_image[mask]  # Extrae los píxeles correspondientes a los negros
-
+    # print(selected_pixels)
     # Calcular la media de los colores (en BGR)
     mean_color = np.mean(selected_pixels, axis=0)
     return mean_color
@@ -88,7 +94,7 @@ def get_mean_color_from_images(material: Path, image_filenames: list[Path]) -> t
     """
     get_mean_color_from_images
     """
-    file = open(f'data/generated/dataset_1/mean_colors/{material}.csv', 'w', encoding='utf-8')
+    file = open(f'data/generated/dataset_2/mean_colors/{material}.csv', 'w', encoding='utf-8')
     file.write("image_filename;mean_color_red;mean_color_green;mean_color_blue\n")
 
     images_mean_colors: list[tuple] = []
@@ -105,10 +111,10 @@ def main():
     main
     """
     # 1. Get filenames from all images in the dataset
-    materials = ['copper', 'zinc', 'brass']
+    materials = ['copper', 'zinc', 'brass', 'pcb']
     directories: list[Path] = []
     for material in materials:
-        directories.append(Path(f'data/images/dataset_1/{material}'))
+        directories.append(Path(f'data/images/dataset_2/{material}'))
 
     materials_images_filenames: list[list[Path]] = get_directories_filepaths(directories)
 
@@ -120,7 +126,7 @@ def main():
         materials_mean_colors.append(material_mean_color)
         materials_mean_colors_dict[materials[index]] = material_mean_color
     
-    export_mean_colors(materials_mean_colors_dict, 'data/generated/dataset_1/mean_colors.json')
+    export_mean_colors(materials_mean_colors_dict, 'data/generated/dataset_2/mean_colors.json')
     print(materials_mean_colors)
 
 

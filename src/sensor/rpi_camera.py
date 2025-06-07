@@ -93,6 +93,19 @@ class RPiCamera(BaseCamera):
                                                                 controls = {"NoiseReductionMode": 0, "FrameDurationLimits": (33333, 33333)})
         print(camera_config)
         self._camera.configure(camera_config)
+
+        # Controls
+        self._camera.set_controls({
+            "AfMode": 0,        # Enfoque manual
+            "LensPosition": 1,
+            "AeEnable": False,
+            "ExposureTime": 3500,
+            "AnalogueGain": 1.0,
+            "AwbEnable": False,
+            # "ColourGains": (1.5, 1.5)
+            # "Contrast": 1.2
+        })
+
         # self._camera.set_controls({"ExposureMode": "off"})
         # self._camera.set_controls({"AwbMode": "off"})
 

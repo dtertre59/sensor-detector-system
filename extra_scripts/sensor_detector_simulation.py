@@ -94,7 +94,7 @@ def main_video():
             detector.flat_field = frame
             flag = False
 
-        pieces = detector.detect(frame, verbose=False)
+        _, pieces = detector.detect(frame, verbose=False)
         released_pieces = tracker.update_3(pieces, verbose=False)
 
         for piece in tracker._pieces:

@@ -2,15 +2,16 @@
 main.py
 """
 
-from src.coordinator import PairCoordinator
+from src.coordinator import Coordinator
 
 
 def main():
     """
     main function
     """
-    pcoordinator = PairCoordinator()
-    pcoordinator.run_t()
+    coordinator = Coordinator('rpi_camera')
+    coordinator.run()
+
 
 
 if __name__ == '__main__':

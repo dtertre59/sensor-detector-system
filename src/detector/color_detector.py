@@ -91,7 +91,7 @@ class ColorDetector(BaseDetector):
         print("Color detector initialized.")
         self._status = "active"
 
-    def detect(self, image: np.ndarray, merge_pieces: bool = True, verbose: bool = False) -> list[Piece]:
+    def detect(self, image: np.ndarray, merge_pieces: bool = True, verbose: bool = False) -> tuple[np.ndarray, list[Piece]]:
         """
         Detects a specific color in the provided image.
 
@@ -136,7 +136,7 @@ class ColorDetector(BaseDetector):
 
         # join close components
         if merge_pieces:    # Recorremos cada par de componentes (ignoramos el fondo: label 0)
-            grow_rectangle = 10  # Tolerance for merging components
+            grow_rectangle = 3  # Tolerance for merging components
             for i in range(1, num_labels):
                 x1, y1, w1, h1, _ = stats[i]
                 rect1 = (x1 - grow_rectangle, 
@@ -186,17 +186,20 @@ class ColorDetector(BaseDetector):
             pieces.append(piece)
 
         # Draw images
-        if 1:
-            for piece in pieces:
-                piece.draw(image)
+        eroded_image_bgr = cv2.cvtColor(eroded_image, cv2.COLOR_GRAY2BGR)
+        if 0:
+            
             gray_image_bgr = cv2.cvtColor(gray_image, cv2.COLOR_GRAY2BGR)
             threshold_image_bgr = cv2.cvtColor(threshold_image, cv2.COLOR_GRAY2BGR)
-            eroded_image_bgr = cv2.cvtColor(eroded_image, cv2.COLOR_GRAY2BGR)
+            # eroded_image_bgr = cv2.cvtColor(eroded_image, cv2.COLOR_GRAY2BGR)
+            for piece in pieces:
+                piece.draw(eroded_image_bgr)
             row1 = cv2.hconcat([image, gray_image_bgr])
             row2 = cv2.hconcat([threshold_image_bgr, eroded_image_bgr])
-            cv2.imshow('Video Threshold process', cv2.vconcat([row1, row2]))
+            matrix = cv2.vconcat([row1, row2])
+            cv2.imshow('Video Threshold process', matrix)
 
-        return pieces
+        return eroded_image_bgr, pieces
 
     def release(self):
         """

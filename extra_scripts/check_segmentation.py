@@ -16,12 +16,12 @@ def main() -> None:
     # detector.flat_field = cv2.imread('data/images/background/background_1.png')
 
     for i in range(0, 13):
-
+        print(i)
         image_path = f'data/images/samples/sequence/sequence_sample_1/sample_{i}.png'
         image = cv2.imread(image_path)
 
-        pieces = detector.detect(image)
-
+        t_i, pieces = detector.detect(image)
+        cv2.imshow('Video', cv2.vconcat([image, t_i]))
         cv2.waitKey(0)
     cv2.destroyAllWindows()
 
