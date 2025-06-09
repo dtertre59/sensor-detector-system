@@ -44,6 +44,7 @@ def main():
     while True:
         image = camera.read()
         image, threshold_image = loop(detector, image)
+        threshold_image = cv2.cvtColor(threshold_image, cv2.COLOR_GRAY2BGR)
         cv2.imshow('Video', cv2.vconcat([threshold_image, image]))
         cv2.moveWindow('Video', 1200, 50)
         # Quit pressing 'q' key
