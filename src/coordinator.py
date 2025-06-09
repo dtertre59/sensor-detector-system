@@ -33,7 +33,7 @@ class Classifier:
         # 'brass': (110, 193, 225),
         # 'copper': (51, 87, 255),
 
-        # Dataset 2
+        # # Dataset 2
         # "copper": (152, 180, 210),
         # "zinc": (203, 209, 211),
         # "brass": (157, 199, 213),
@@ -51,7 +51,6 @@ class Classifier:
         """
         which material it is
         """
-        print(color)
         distances = {material: np.linalg.norm(np.array(color) - np.array(m_color)) for material, m_color in Classifier.MATERIALS.items()}
         # Find the material with the smallest distance
         closest_material = min(distances, key=distances.get)
@@ -184,6 +183,7 @@ class Coordinator:
 
         # flat field
         flag = False
+    
         while True:
             frame = self.sensor.read()
 

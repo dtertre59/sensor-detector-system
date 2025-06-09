@@ -24,7 +24,7 @@ class ColorDetector(BaseDetector):
     A color detector class implementing the DetectorInterface to detect specific colors in an image.
     """
 
-    def __init__(self, name: str = 'detector-image-color', min_area: int = 135):
+    def __init__(self, name: str = 'detector-image-color', thresh: int = 150, min_area: int = 135):
         """
         Initializes the color detector.
 
@@ -39,6 +39,7 @@ class ColorDetector(BaseDetector):
         self.detection_result = None
 
         self._min_area = min_area
+        self._thresh = thresh
         self._flat_field = None
 
     @property
@@ -63,7 +64,8 @@ class ColorDetector(BaseDetector):
         """
         self._name = 'detector-image-color'
         self.detection_result = None
-        self._min_area = 135
+        # self._thresh = 150
+        # self._min_area = 135
         self._status = "idle"
 
     def get_status(self):
@@ -116,7 +118,9 @@ class ColorDetector(BaseDetector):
         # threshold_image = dut.segment(gray_image, self._min_area, verbose)
 
         # Segment image 2
-        threshold_image = dut.segment(gray_image, min_area=0, flat_field=self._flat_field, verbose=verbose)
+        threshold_image = dut.segment(gray_image, thresh=self._thresh,
+                                      min_area=self._min_area, flat_field=self._flat_field,
+                                      verbose=verbose)
         # ut.show_image(threshold_image)
 
         # Find connected components
@@ -126,6 +130,8 @@ class ColorDetector(BaseDetector):
 
         # Morphological operations to unite close components
         kernel = np.ones((25, 25), np.uint8)  # You can adjust the kernel size as needed
+        kernel = np.ones((1, 1), np.uint8)  # You can adjust the kernel size as needed
+
         dilated_image = cv2.dilate(threshold_image, kernel, iterations=1)
         eroded_image = cv2.erode(dilated_image, kernel, iterations=1)
         # threshold_image = eroded_image.copy()
@@ -178,8 +184,8 @@ class ColorDetector(BaseDetector):
             mean_color = None
             position = None
 
-            piece = Piece(id=0, name='piece', bbox=(int(x), int(y), int(w), int(h)), mean_color=mean_color,
-                          position=position, area=int(area))
+            piece = Piece(id=0, name='piece', bbox=(int(x), int(y), int(w), int(h)),
+                          mean_color=mean_color, position=position, area=int(area))
             piece.add_mean_color(dut.get_mean_color_from_label(label, labels, image))
             piece.add_position(tuple(map(int, centroids[label])))
 

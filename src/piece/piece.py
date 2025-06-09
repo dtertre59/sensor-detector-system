@@ -469,7 +469,7 @@ class Piece:
             track (bool). Draw or not the track
         """
         color = self.mean_colors[0]['mean_color']
-        thickness = 2
+        thickness = 1
 
         if track:
             # Draw the trajectory
@@ -491,8 +491,8 @@ class Piece:
 
         # Draw the name
         if self._bbox and self._name:
-            cv2.putText(image, self._name, (self.bbox[0] + 10, self.bbox[1]-10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, thickness)
+            cv2.putText(image, f"{self._name}\n{self.calculate_mean_color()} {self.calculate_area()}", (self.bbox[0] + 10, self.bbox[1]-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness)
 
     def pack(self) -> bytes:
         """

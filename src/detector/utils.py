@@ -56,7 +56,7 @@ def delete_small_labels(thresh_image: np.ndarray, min_area: int = 135, verbose: 
 
 
 # Segment image to binary
-def segment(gray_image: np.ndarray, min_area: int = 135,
+def segment(gray_image: np.ndarray, thresh: int = 150, min_area: int = 135,
             flat_field: np.ndarray = None, verbose: bool = False) -> np.ndarray:
     """
     segment Image
@@ -67,11 +67,11 @@ def segment(gray_image: np.ndarray, min_area: int = 135,
     if flat_field is not None:
         difference = cv2.absdiff(gray_image, flat_field)
         # Threshold
-        thresh = 20
+        # thresh = 20
         _, threshold = cv2.threshold(difference, thresh, 255, cv2.THRESH_BINARY)
     else:
         # binary threshold Manual setting the threshold
-        thresh = 85
+        # thresh = 90 # 150 # 85
         _, threshold = cv2.threshold(gray_image, thresh, 255, cv2.THRESH_BINARY)
 
         # # Apply binary threshold Automatic

@@ -100,8 +100,8 @@ class RPiCamera(BaseCamera):
             "LensPosition": 1,
             "AeEnable": False,
             "ExposureTime": 3500,
-            "AnalogueGain": 1.0,
-            "AwbEnable": False,
+            # "AnalogueGain": 1.0,
+            # "AwbEnable": False,
             # "ColourGains": (1.5, 1.5)
             # "Contrast": 1.2
         })

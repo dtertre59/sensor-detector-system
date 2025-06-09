@@ -15,8 +15,8 @@ def main():
     """
     camera: BaseCamera = SensorFactory.create(SensorType.RPI_CAMERA)
     camera.video_name = 'full_video_tspeed3'
-    camera.photo_name = 'pcb'
-    camera.photo_path = Path('data/images/dataset_2/pcb')
+    camera.photo_name = 'brass'
+    camera.photo_path = Path('data/images/dataset_3/brass')
     camera.initialize()
     camera.stream_video(show_fps=False, verbose=True)
     camera.release()
