@@ -124,16 +124,17 @@ class ColorDetector(BaseDetector):
         # ut.show_image(threshold_image)
 
         # Find connected components
-        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
-        threshold_image = dut.delete_small_labels(threshold_image, self._min_area, verbose)
+        # num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(threshold_image)
+        # threshold_image = dut.delete_small_labels(threshold_image, self._min_area, verbose)
         # ut.show_image(threshold_image)
 
         # Morphological operations to unite close components
-        kernel = np.ones((25, 25), np.uint8)  # You can adjust the kernel size as needed
-        kernel = np.ones((1, 1), np.uint8)  # You can adjust the kernel size as needed
+        # kernel = np.ones((25, 25), np.uint8)  # You can adjust the kernel size as needed
+        # kernel = np.ones((1, 1), np.uint8)  # You can adjust the kernel size as needed
 
-        dilated_image = cv2.dilate(threshold_image, kernel, iterations=1)
-        eroded_image = cv2.erode(dilated_image, kernel, iterations=1)
+        # dilated_image = cv2.dilate(threshold_image, kernel, iterations=1)
+        # eroded_image = cv2.erode(dilated_image, kernel, iterations=1)
+        eroded_image = threshold_image.copy()
         # threshold_image = eroded_image.copy()
 
         num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(eroded_image)

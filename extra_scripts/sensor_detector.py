@@ -31,7 +31,7 @@ def main():
     while True:
         frame = camera.read()
 
-        threshold_image, pieces = detector.detect(frame)
+        threshold_image, pieces = detector.detect(frame, merge_pieces=False)
 
         for piece in pieces:
             material = Classifier.which_material(piece.calculate_mean_color())
