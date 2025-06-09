@@ -5,6 +5,36 @@ utils.py
 import os
 from pathlib import Path
 import cv2
+import numpy as np
+
+
+def delta_e(a1: np.ndarray, a2: np.ndarray) -> float:
+    """
+    Computes the Euclidean distance (ΔE) between two vectors
+
+    Args:
+        a1 (np.ndarray): First vector.
+        a2 (np.ndarray): Second vector.
+
+    Returns:
+        float: The Euclidean distance between the two input vectors.
+    """
+    return float(np.linalg.norm(a1.astype(float) - a2.astype(float)))
+
+
+def bgr_to_lab(bgr_color: tuple[int, int, int]) -> tuple[int, int, int]:
+    """
+    Convert a BGR color to LAB color space.
+
+    Args:
+        bgr_color (tuple[int, int, int]): The BGR color as a tuple.
+
+    Returns:
+        tuple[int, int, int]: The LAB color as a tuple.
+    """
+    bgr_array = np.uint8([[bgr_color]])
+    lab_color = cv2.cvtColor(bgr_array, cv2.COLOR_BGR2Lab)[0][0]
+    return tuple(map(int, lab_color))
 
 
 def show_image(image):
@@ -30,7 +60,7 @@ def get_directory_filepaths(directory: Path) -> list[Path]:
     except PermissionError:
         print("You dont have access.")
         return []
-    
+
 
 def obtain_filenames_last_number(directory: Path, name: str, verbose: bool = False) -> int:
     """
@@ -47,6 +77,7 @@ def obtain_filenames_last_number(directory: Path, name: str, verbose: bool = Fal
     if not numbers:
         return 0
     return max(numbers)
+
 
 def get_distance(p1: tuple, p2: tuple) -> float:
     """

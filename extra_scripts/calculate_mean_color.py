@@ -10,6 +10,8 @@ import cv2
 import numpy as np
 import json
 
+from src.classifier import MaterialEn
+
 from src.detector.color_detector import ColorDetector
 from src.utils import get_directory_filepaths, show_image
 
@@ -40,6 +42,8 @@ def get_directories_filepaths(directories: list[Path]) -> list[list[Path]]:
 def calculate_mean_color(mean_colors: list[tuple]) -> tuple[int, int, int]:
     """
     calculate_mean_color
+
+    BGR and LAB colors are calculated as the mean of the colors in the list.
     """
     red = green = blue = 0
     for color in mean_colors:
@@ -53,7 +57,7 @@ def calculate_mean_color(mean_colors: list[tuple]) -> tuple[int, int, int]:
     return final_color
 
 
-def get_mean_color_for_image(image_filename: Path) -> tuple[int, int, int]:
+def get_bgr_mean_color_for_image(image_filename: Path) -> tuple[int, int, int]:
     """
     get_mean_color
     """
@@ -61,36 +65,49 @@ def get_mean_color_for_image(image_filename: Path) -> tuple[int, int, int]:
     # 1. Load image
     image = cv2.imread(str(image_filename))
 
-    binary_mask_bgr, _ = detector.detect(image)
+    threshold_image, _ = detector.detect(image)
 
-    # gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-    # # noise removal
-    # kernel = np.ones((3, 3), np.uint8)
-    # opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-    # # sure background area
-    # sure_bg = cv2.dilate(opening, kernel, iterations=5)
-
-    # # imagen
+    # imagen
     original_image = image.copy()
-    # binary_image = sure_bg.copy()
 
-    # # Asegurarse de que la imagen binaria es realmente binaria (0 y 255)
-    # _, binary_mask = cv2.threshold(binary_image, 127, 255, cv2.THRESH_BINARY)
-    # show_image(cv2.vconcat([image, binary_mask_bgr]))
     # Crear una máscara donde los píxeles negros en la binaria (valor 0) sean True
-    binary_mask = cv2.cvtColor(binary_mask_bgr, cv2.COLOR_BGR2GRAY)
-    mask = binary_mask == 255  # Los píxeles negros son True
-    # show_image(cv2.vconcat([image, binary_mask_bgr]))
+    mask = threshold_image == 255  # Los píxeles negros son True
+
     # Aplicar la máscara a la imagen original para seleccionar los píxeles relevantes
     selected_pixels = original_image[mask]  # Extrae los píxeles correspondientes a los negros
-    # print(selected_pixels)
+
     # Calcular la media de los colores (en BGR)
     mean_color = np.mean(selected_pixels, axis=0)
     return mean_color
 
 
-def get_mean_color_from_images(dataset: int, material: Path, image_filenames: list[Path]) -> tuple[int, int, int]:
+def get_lab_mean_color_for_image(image_filename: Path) -> tuple[int, int, int]:
+    """
+    get_mean_color
+    """
+    # vars
+    detector = ColorDetector(thresh=80)
+
+    # 1. Load image
+    image = cv2.imread(str(image_filename))
+
+    threshold_image, _ = detector.detect(image)
+
+    # LAB format
+    original_image = cv2.cvtColor(image, cv2.COLOR_BGR2Lab)
+
+    # Crear una máscara donde los píxeles negros en la binaria (valor 0) sean True
+    mask = threshold_image == 255  # Los píxeles negros son True
+
+    # Aplicar la máscara a la imagen original para seleccionar los píxeles relevantes
+    selected_pixels = original_image[mask]  # Extrae los píxeles correspondientes a los negros
+
+    # Calcular la media de los colores
+    mean_color = np.mean(selected_pixels, axis=0)
+    return mean_color
+
+
+def get_mean_color_from_images(dataset: int, material: Path, image_filenames: list[Path], image_format: str = 'bgr') -> tuple[int, int, int]:
     """
     get_mean_color_from_images
     """
@@ -101,39 +118,56 @@ def get_mean_color_from_images(dataset: int, material: Path, image_filenames: li
         pass
     file = open(f'data/generated/dataset_{dataset}/mean_colors/{material}.csv', 'w', encoding='utf-8')
     file.write("image_filename;mean_color_red;mean_color_green;mean_color_blue\n")
-
     images_mean_colors: list[tuple] = []
+
     for image_filename in image_filenames:
-        image_mean_color = get_mean_color_for_image(image_filename)
+        # print(image_filename)
+        if image_format == 'bgr':
+            image_mean_color = get_bgr_mean_color_for_image(image_filename)
+        elif image_format == 'lab':
+            image_mean_color = get_lab_mean_color_for_image(image_filename)
+        else:
+            raise ValueError("Unsupported image format. Use 'bgr' or 'lab'.")
+
         images_mean_colors.append(image_mean_color)
         file.write(f"{image_filename.stem};{image_mean_color[0]};{image_mean_color[1]};{image_mean_color[2]}\n")
     file.close()
-    return calculate_mean_color(images_mean_colors)
+
+    final_mean_color = calculate_mean_color(images_mean_colors)
+    return final_mean_color
 
 
 def main():
     """
     main
     """
+
+    # VARS
     dataset = 4
+    image_formats = ['bgr', 'lab']  # 'bgr' or 'lab'
+
     # 1. Get filenames from all images in the dataset
-    materials = ['copper', 'zinc', 'brass', 'pcb']
+    materials = [material.name.lower() for material in MaterialEn]
+    print('Materials:', materials)
+
     directories: list[Path] = []
     for material in materials:
         directories.append(Path(f'data/images/dataset_{dataset}/{material}'))
 
+    # Get the file paths for each material directory
     materials_images_filenames: list[list[Path]] = get_directories_filepaths(directories)
-    # print(materials_images_filenames)
+
     # 2. For each image, calculate the mean color
-    materials_mean_colors = []
-    materials_mean_colors_dict = {}
-    for index, material_images_filenames in enumerate(materials_images_filenames):
-        material_mean_color = get_mean_color_from_images(dataset, materials[index], material_images_filenames)
-        materials_mean_colors.append(material_mean_color)
-        materials_mean_colors_dict[materials[index]] = tuple(material_mean_color)
-    
+    materials_mean_colors_dict = {image_format: {} for image_format in image_formats}
+
+    for image_format in image_formats:
+        for index, material_images_filenames in enumerate(materials_images_filenames):
+            material_mean_color = get_mean_color_from_images(dataset, materials[index], material_images_filenames,
+                                                             image_format=image_format)
+            materials_mean_colors_dict[image_format][materials[index]] = tuple(material_mean_color)
+
     export_mean_colors(materials_mean_colors_dict, f'data/generated/dataset_{dataset}/mean_colors.json')
-    print(materials_mean_colors)
+    print(materials_mean_colors_dict)
 
 
 if __name__ == '__main__':

@@ -491,7 +491,7 @@ class Piece:
 
         # Draw the name
         if self._bbox and self._name:
-            cv2.putText(image, f"{self._name}\n{self.calculate_mean_color()} {self.calculate_area()}", (self.bbox[0] + 10, self.bbox[1]-10),
+            cv2.putText(image, f"{self._name}{self.calculate_mean_color()}", (self.bbox[0] + 10, self.bbox[1]-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness)
 
     def pack(self) -> bytes:

@@ -24,8 +24,11 @@ from src.detector.detector_type import DetectorType
 
 class Classifier:
     """
-    Classifer
-    BGR
+    BGR Classifer [B, G, R]
+
+    B = Blue 
+    G = Green
+    R = Red
     """
     MATERIALS = {
         # Dataset 1
