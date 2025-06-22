@@ -219,7 +219,8 @@ class Tracker:
 
         # Filter 3. position limit 2
         if piece.get_last_positon()[0] > self._x_addition_limit:
-            print(f'DISCARD {piece.name}({piece.id}): Is out of addition range:', piece.get_last_positon())
+            if verbose:
+                print(f'DISCARD {piece.name}({piece.id}): Is out of addition range:', piece.get_last_positon())
             #  TODO: Check if the piece is a division of another piece.
             # One piece in a frame are two or more pieces in the next frame.
             return False

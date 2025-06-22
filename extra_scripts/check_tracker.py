@@ -107,7 +107,7 @@ def main() -> None:
             break
 
         time.sleep(0.04)
-        input("Press Enter to continue...")
+        # input("Press Enter to continue...")
 
 
 if __name__ == '__main__':

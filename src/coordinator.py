@@ -187,33 +187,39 @@ class Coordinator:
 
         self.transmitter = MulticastTransmitter(host, port)
 
-    def run(self) -> None:
+    def run(self, flat_field_flag: bool = False) -> None:
         """
         Run the coordinator
         """
+        # Config parameters
+
+        self.detector._thresh = 80
+        self.detector.min_area = 300
+        self.tracker._x_addition_limit = 400
+
+        print()
+        print('----- Init vars -----')
+        print()
+
         self.sensor.initialize()
         self.detector.initialize()
 
         self.transmitter.initialize()
-
-        # flat field
-        flag = False
+        
+        print()
+        print('----- Start Loop -----')
+        print()
     
         while True:
             frame = self.sensor.read()
 
             # flat field
-            if flag:
+            if flat_field_flag:
                 self.detector.flat_field = frame
-                flag = False
+                flat_field_flag = False
 
-            threshold_image, pieces = self.detector.detect(frame)
-            released_pieces = self.tracker.update_3(pieces)
-
-            # Classify the pieces
-            for piece in self.tracker._pieces:
-                material = Classifier.which_material(piece.calculate_mean_color())
-                piece.name = f"{material}-{piece.id}"
+            threshold_image, pieces = self.detector.detect(frame, merge_pieces=False)
+            released_pieces = self.tracker.update(pieces)
 
             # Send the released pieces to the peers
             if released_pieces:
@@ -231,10 +237,11 @@ class Coordinator:
 
             # Draw the tracker
             self.tracker.draw(frame)
-            final_img = cv2.vconcat([threshold_image, frame])
+            t_i = cv2.cvtColor(threshold_image, cv2.COLOR_GRAY2BGR)
+            final_img = cv2.vconcat([t_i, frame])
 
             cv2.imshow('Video', final_img)
-            cv2.moveWindow('Video', 10, 10)
+            cv2.moveWindow('Video', 20, 40)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
