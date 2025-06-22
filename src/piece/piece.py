@@ -1,12 +1,16 @@
 """
 piece.py
 """
+from __future__ import annotations
 
 import time
 import json
 import numpy as np
 
 import cv2
+
+from src.classifier import MaterialEn, LabClassifier
+from src.utils import bgr_to_lab
 
 
 class Piece:
@@ -15,7 +19,7 @@ class Piece:
 
     Attributes:
         name (str): The name of the piece.
-        category (str): The category of the piece.
+        category (MaterialEn): The category of the piece.
         bbox (tuple): (x, y, w, h)
         mean_colors (list): A list of dictionaries with mean color and time.
         positions (list): A list of dictionaries with position and time.
@@ -32,7 +36,8 @@ class Piece:
         update: Update with other piece.
     """
 
-    def __init__(self, id: int, name: str | None = None, category: str | None = None, bbox: tuple | None = None,
+    def __init__(self, id: int, name: str = 'unknown', category: MaterialEn = MaterialEn.UNKNOWN,
+                 bbox: tuple | None = None,
                  mean_color: tuple | None = None, position: tuple | None = None, area: int | None = None,
                  speed: float | None = None):
         """
@@ -119,7 +124,7 @@ class Piece:
         self._name = value
 
     @property
-    def category(self) -> str:
+    def category(self) -> MaterialEn:
         """
         Get the category of the piece.
 
@@ -129,7 +134,7 @@ class Piece:
         return self._category
 
     @category.setter
-    def category(self, value: int) -> None:
+    def category(self, value: MaterialEn) -> None:
         """
         Set the category of the piece.
 
@@ -139,8 +144,8 @@ class Piece:
         Raises:
             ValueError: If the category is not a string.
         """
-        if not isinstance(value, str):
-            raise ValueError("Category must be a string")
+        if not isinstance(value, MaterialEn):
+            raise ValueError("Category must be a MaterialEnum")
         self._category = value
 
     @property
@@ -343,6 +348,32 @@ class Piece:
         count = len(self._mean_colors)
         return (total_b // count, total_g // count, total_r // count)
 
+    def calculate_mean_color_lab(self) -> tuple[int, int, int]:
+        """
+        Calculate the overall mean color in LAB color space using all mean colors.
+
+        Returns:
+            tuple: The overall mean color in LAB color space as a tuple of three integers (L, A, B).
+
+        Raises:
+            ValueError: If there are no mean colors available.
+        """
+        piece_mean_color_lab = bgr_to_lab(self.calculate_mean_color())
+        return piece_mean_color_lab
+
+    def calculate_category(self) -> MaterialEn:
+        """
+        Get the category of the piece.
+
+        Returns:
+            str: The category of the piece.
+        """
+        material, dist = LabClassifier.which_material(self.calculate_mean_color_lab(), verbose=False)
+        self._category = material
+        self._name = material.name.lower()
+
+        return self._category
+    
     # ----- Position functions
 
     def add_position(self, position: tuple[float, float]) -> None:
@@ -444,21 +475,25 @@ class Piece:
 
     # ----- Other methods
 
-    def update(self, piece: 'Piece') -> None:
+    def update(self, piece: Piece | None = None) -> None:
         """
         Update with other piece.
 
         Args:
             piece (Piece): The piece to update with.
         """
-        if piece.bbox:
-            self.bbox = piece.bbox
-        self._mean_colors.append(piece.mean_colors[-1])
-        self._positions.append(piece.positions[-1])
-        if len(piece.areas) > 0:
-            self._areas.append(piece.areas[-1])
-        self._speed = self.calculate_speed()
-        # self._name = piece.name
+        if piece is not None:
+            if piece.bbox:
+                self.bbox = piece.bbox
+            self._mean_colors.append(piece.mean_colors[-1])
+            self._positions.append(piece.positions[-1])
+            if len(piece.areas) > 0:
+                self._areas.append(piece.areas[-1])
+        # Calculate
+        if len(self._positions) > 1:
+            _ = self.calculate_speed()
+        if len(self._mean_colors) > 0:
+            _ = self.calculate_category()
 
     def draw(self, image: np.ndarray, track: bool = False) -> None:
         """
@@ -490,9 +525,10 @@ class Piece:
             cv2.rectangle(img=image, pt1=point1, pt2=point2, color=color, thickness=thickness)
 
         # Draw the name
+        thickness = 2
         if self._bbox and self._name:
-            cv2.putText(image, f"{self._name}{self.calculate_mean_color()}", (self.bbox[0] + 10, self.bbox[1]-10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, thickness)
+            cv2.putText(image, f"{self._name}({self.id})", (self.bbox[0] - 10, self.bbox[1]-10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, thickness)
 
     def pack(self) -> bytes:
         """
@@ -505,10 +541,11 @@ class Piece:
         position = self.get_last_positon()
         speed = self.calculate_speed()
         mean_color = self.calculate_mean_color()
+        category = self.calculate_category()
 
         piece_dict = {'id': self._id,
                       'name': self._name,
-                      'category': self._category,
+                      'category': category.value,
                       'bbox': self._bbox,
                       'mean_color': mean_color,
                       'position': position,

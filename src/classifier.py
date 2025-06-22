@@ -17,6 +17,7 @@ class MaterialEn(Enum):
     ZINC = auto()
     BRASS = auto()
     PCB = auto()
+    UNKNOWN = auto()
 
 
 class BgrClassifier:

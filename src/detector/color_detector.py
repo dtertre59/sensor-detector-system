@@ -24,7 +24,7 @@ class ColorDetector(BaseDetector):
     A color detector class implementing the DetectorInterface to detect specific colors in an image.
     """
 
-    def __init__(self, name: str = 'detector-image-color', thresh: int = 150, min_area: int = 135):
+    def __init__(self, name: str = 'detector-image-color', thresh: int = 150, min_area: int = 300):
         """
         Initializes the color detector.
 
@@ -102,6 +102,7 @@ class ColorDetector(BaseDetector):
             image (np.ndarray): an image.
 
         Returns:
+            np.ndarray: The processed image after noise reduction and segmentation.
             list[Pieces]: A list of pieces.
         """
 
@@ -186,7 +187,7 @@ class ColorDetector(BaseDetector):
             mean_color = None
             position = None
 
-            piece = Piece(id=0, name='piece', bbox=(int(x), int(y), int(w), int(h)),
+            piece = Piece(id=label, name='piece', bbox=(int(x), int(y), int(w), int(h)),
                           mean_color=mean_color, position=position, area=int(area))
 
             # # Change to LAB format

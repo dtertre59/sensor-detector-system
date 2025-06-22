@@ -4,6 +4,7 @@ tracker.py
 
 import numpy as np
 import cv2
+from collections import defaultdict
 # from cv2.typing import MatLike
 
 from src.piece.piece import Piece
@@ -25,17 +26,89 @@ class Tracker:
 
     """
 
-    def __init__(self, x_min: float = 0, x_max: float = 640, y_max: float = 580, tolerance: float = 0.1):
+    def __init__(self, x_min: float = 0, x_max: float = 640, y_max: float = 580,
+                 min_area: int = 300, tolerance: float = 0.1):
         """
         Initialize the Tracker instance. TODO
         """
         self._pieces: list[Piece] = []
+        self._pieces_all_info: list[tuple[Piece, int]] = []
+
         self._counter = 0
         self._x_min = x_min
         self._x_max = x_max
         self._y_max = y_max
+
+        # Minimum area of a piece to be tracked
+        self._min_area = min_area
+
+        # limits
+        self._x_addition_limit = x_min + 100
         self._x_expulsion_limit = x_max - 100
+
+        # Tolerance for y position
         self._tolerance = tolerance
+
+    def get_short_description(self, pieces: list[Piece] | None = None) -> str:
+        """
+        Get a short description of the Tracker instance.
+        """
+        if pieces is None:
+            pieces = self._pieces
+        text = ''
+        for piece in pieces:
+            text += f' {piece.name}({piece.id}) |'
+        return text[1:-2]
+
+    def add_piece(self, piece: Piece, verbose: bool = False) -> None:
+        """
+        Add a piece to the tracker.
+        """
+        if piece in self._pieces:
+            raise Exception('Piece is already in the list')
+
+        piece.id = self._counter
+        piece.update()
+        self._pieces.append(piece)
+        self._pieces_all_info.append((piece, 0))
+        if verbose:
+            print(f'ADD {piece.name}({piece.id})')
+        self._counter += 1
+
+    def one_strike(self, piece: Piece, max_strikes: int = 3, verbose: bool = False) -> None:
+        """
+        Put one strike to a piece
+        """
+        strike = None
+
+        if piece not in self._pieces:
+            raise Exception('Piece is not in the list')
+
+        for index, data in enumerate(self._pieces_all_info):
+            if data[0] == piece:
+                self._pieces_all_info[index] = (self._pieces_all_info[index][0], (self._pieces_all_info[index][1] + 1))
+                strike = self._pieces_all_info[index][1]
+                if verbose:
+                    print(f'ERR {piece.name}({piece.id}) -> number of strikes:', self._pieces_all_info[index][1])
+                break
+        else:
+            raise Exception('Piece is not in the list of pieces with strikes')
+        if strike > max_strikes:
+            self.delete_piece(piece, verbose=verbose)
+
+    def delete_piece(self, piece: Piece, verbose: bool = False):
+        """
+        Delete piece
+        """
+        self._pieces = [p for p in self._pieces if p != piece]
+        self._pieces_all_info = [p for p in self._pieces_all_info if p[0] != piece]
+        if verbose:
+            print(f'DELETE {piece.name}({piece.id})')
+
+    def delete_pieces(self, pieces: list[Piece]):
+        """ delete pieces """
+        self._pieces = [p for p in self._pieces if p not in pieces]
+        self._pieces_all_info = [p for p in self._pieces_all_info if p[0] not in pieces]
 
     # def _is_in_range(self, piece: Piece) -> int:
         # """
@@ -121,110 +194,39 @@ class Tracker:
 
         return s
 
-    # def update(self, pieces: list[Piece], verbose: bool = False) -> list[Piece]:
-    #     """
-    #     Add a new piece to track or update an existing piece.
+    def discard_filters(self, piece: Piece, verbose: bool = False) -> bool:
+        """
+        Discard piece if it does not pass the filters.
 
-    #     Args:
-    #         pieces (list[Piece]): The pieces to add or update.
-    #         verbose (bool): Whether to print information.
+        Args:
+            piece (Piece): The piece to check.
+            verbose (bool): Whether to print information.
 
-    #     Returns:
-    #         list[Pieces]: a list of pieces that comes outside our range. prepare to notify and Analyce
-    #     """
+        Returns:
+            bool: True if the piece passes the filters, False otherwise.
+        """
+        # Filter 1. size
+        if piece.calculate_area() < self._min_area:
+            if verbose:
+                print(f'DISCARD {piece.name}({piece.id}): Is too small')
+            return False
 
-    #     # local variables
-    #     release_pieces = []
+        # Filter 2. position limit 1
+        if (piece.get_last_positon()[0] >= self._x_expulsion_limit):
+            if verbose:
+                print(f'DISCARD {piece.name}({piece.id}): Is out of range')
+            return False
 
-    #     if verbose:
-    #         print('Number of pieces in image:', len(pieces))
+        # Filter 3. position limit 2
+        if piece.get_last_positon()[0] > self._x_addition_limit:
+            print(f'DISCARD {piece.name}({piece.id}): Is out of addition range:', piece.get_last_positon())
+            #  TODO: Check if the piece is a division of another piece.
+            # One piece in a frame are two or more pieces in the next frame.
+            return False
 
-    #     # When the list is empty
-    #     if len(self._pieces) == 0:
-    #         for piece in pieces:
-    #             piece.id = self._counter
-    #             piece.name = f'unknown-{piece.id}'
-    #             self._counter += 1
-    #             self._pieces.append(piece)
+        return True
 
-    #         if verbose:
-    #             print('My pieces:', [p.name for p in self._pieces])
-    #         return
-
-    #     # When the list is not empty
-    #     for index, piece in enumerate(pieces):
-    #         print(piece)
-    #         # Only if they are up to range min
-    #         range_value = self._is_in_range(piece)
-
-    #         if verbose:
-    #             print(f'Detection {index} Range value:', range_value)
-
-    #         # Piece in traker range
-    #         if range_value == 0:
-    #             piece_index = self._is_the_same(piece)
-
-    #             if verbose:
-    #                 print(f'Detection {index} is the same as piece:', piece_index)
-
-    #             if piece_index >= 0:  # pieza localizada
-    #                 self._pieces[piece_index].update(piece)
-    #             else:  # pieza sin localizar -> la añadimos a la lista para trakearla
-    #                 piece.name = f'unknown-{self._counter}'
-    #                 print(piece.name)
-    #                 self._counter += 1
-    #                 self._pieces.append(piece)
-
-    #         # Piece over max range (uncertain piece)
-    #         # Como saber si ya ha sido detectada en esta zona y enviada, o todavia no?
-    #         elif range_value == 1:
-    #             print('Piece out of range')
-    #             piece_index = self._is_the_same(piece)
-
-    #             # Is the same
-    #             if index >= 0:
-    #                 release_pieces.append(self._pieces[piece_index])
-    #                 # Remove the piece from the list
-    #                 self._pieces.pop(piece_index)
-
-    #                 # Notify
-    #                 if verbose:
-    #                     print('PIECE POP')
-
-    #             # Not the same. It is an old piece
-    #             else:
-    #                 print('No piece to remove')
-    #     if verbose:
-    #         print('My pieces:', [p.name for p in self._pieces])
-    #         print()
-
-    #     return release_pieces
-
-    # def update_2(self, new_pieces: list[Piece], verbose: bool = False) -> list[Piece]:
-
-    #     for index, new_piece in enumerate(new_pieces):
-    #         if new_piece.positions[-1]['position'][1] > self._x_max:
-    #             print(f'{index} NEW PIECE OUT OF RANGE')
-    #             continue
-
-    #         # Piece in traker range
-    #         if self._pieces != []:
-    #             piece_index = self._is_the_same(new_piece)
-    #             if piece_index >= 0:  # pieza localizada
-    #                 print(f'{index} PIEZA LOCALIZADA')
-    #                 self._pieces[piece_index].update(new_piece)
-    #             else:
-    #                 print(f'{index} NUEVA PIEZA')
-    #                 new_piece.name = f'unknown-{self._counter}'
-    #                 self._counter += 1
-    #                 self._pieces.append(new_piece)
-    #         else:
-    #             print(f'{index} NUEVA PIEZA')
-    #             new_piece.name = f'unknown-{self._counter}'
-    #             self._counter += 1
-    #             self._pieces.append(new_piece)
-
-    def update_3(self, new_pieces: list[Piece], verbose: bool = False) -> list[Piece]:
+    def update(self, new_pieces: list[Piece], verbose: bool = False) -> list[Piece]:
         """
         Add a new piece to track or update an existing piece.
 
@@ -235,11 +237,14 @@ class Tracker:
         Returns:
             list[Pieces]: a list of pieces that comes outside our range. prepare to notify and Analyce
         """
-
         # local variables
         unmatched_new_pieces: list[Piece] = new_pieces.copy()
 
         if verbose:
+            print('')
+            print('----- Tracker Update -----')
+            print()
+            print('Tracker Pieces before updating:', self.get_short_description())
             print('Number of pieces in image:', len(new_pieces))
 
         # Order new pieces by X poosition. Descending
@@ -247,104 +252,86 @@ class Tracker:
 
         # new_pieces = [new_piece for new_piece in new_pieces if new_piece.calculate_area() > 2000]
 
-        # When the list is empty
-        if len(self._pieces) == 0:
-            possible_pieces = [new_piece for new_piece in new_pieces if
-                               new_piece.get_last_positon()[0] < self._x_expulsion_limit]
+        # # When the list is empty
+        # if len(self._pieces) == 0:
+        #     possible_pieces = [new_piece for new_piece in unmatched_new_pieces if
+        #                        new_piece.get_last_positon()[0] < self._x_expulsion_limit]
 
-            for new_piece in possible_pieces:
-                new_piece.id = self._counter
-                new_piece.name = f'unknown-{new_piece.id}'
-                self._counter += 1
-                self._pieces.append(new_piece)
+        #     for new_piece in possible_pieces:
+        #         self.add_piece(new_piece, verbose=verbose)
+        #     return
 
-            if verbose:
-                print('My pieces:', [p.name for p in self._pieces])
-            return
+        # ----- MATCHING PIECES ----- #
 
-        # When the list is not empty
-        for piece in self._pieces:
+        if len(self._pieces) != 0:
             if verbose:
                 print()
-                print('Piece:', piece.name)
-                print('Last Position:', piece.get_last_positon(), ' | Area:', piece.calculate_area())
 
-            # for index, new_piece in enumerate(new_pieces):
-            #     print('New Piece position:', new_piece.get_last_positon())
+            matching_pieces: list[tuple[Piece, Piece, float]] = []
 
-            possible_pieces = [new_piece for new_piece in new_pieces if
-                               new_piece.get_last_positon()[0] > piece.get_last_positon()[0]]
+            for piece in self._pieces:
+                new_pieces.sort(key=lambda x, piece=piece: self._calculate_similarity(piece, x), reverse=True)
+                best_piece = new_pieces[0]
+                best_similarity = self._calculate_similarity(piece, best_piece)
+                # if verbose:
+                #     print(f'{piece.name} -> Best match with piece {best_piece.id}:', best_piece.get_last_positon(),
+                #           best_similarity, '%')
+                matching_pieces.append((piece, best_piece, best_similarity))
 
-            # Make an intersection with unmatched pieces
-            possible_pieces = [new_piece for new_piece in possible_pieces if new_piece in unmatched_new_pieces]
+            matching_pieces.sort(key=lambda x: x[2], reverse=True)
 
-            if verbose:
-                print('Number of Possible pieces:', len(possible_pieces))
-                for posible_piece in possible_pieces:
-                    print(f'  - Possible Piece position: {posible_piece.get_last_positon()}'
-                          f' | Area: {posible_piece.calculate_area()}')
+            # # Dict pieces with same new_piece
+            # matching_pieces_dict = defaultdict(list)
+            # for piece, best_piece, best_similarity in matching_pieces:
+            #     matching_pieces_dict[best_piece.id].append(piece.name)
+            # if verbose:
+            #     print(matching_pieces_dict)
 
-            # Not possible pieces
-            if len(possible_pieces) == 0:
-                if verbose:
-                    print(f'No possible pieces to match with piece {piece.name}')
-                # unmatched_pieces.remove(piece)
-                continue
+            # Strike or Merge those pieces
 
-            # ----- MATCHING PIECE ----- #
+            for piece, best_piece, best_similarity in matching_pieces:
+                try:
+                    unmatched_new_pieces.remove(best_piece)
+                except ValueError:
+                    self.one_strike(piece, max_strikes=3, verbose=verbose)  # if strike > 3 del piece
+                else:
+                    piece.update(best_piece)
+                    if verbose:
+                        print(f'UPDATE {piece.name}({piece.id}) -> Best match with piece {best_piece.id}:', 
+                              best_piece.get_last_positon(), round(best_similarity, 5), '%')
 
-            # Probability
-            for index, possible_piece in enumerate(possible_pieces):
-
-                similarity = self._calculate_similarity(piece, possible_piece)
-
-                if verbose:
-                    print(f'Similarity {index}:', similarity * 100, '%')
-
-            possible_pieces.sort(key=lambda x, piece=piece: self._calculate_similarity(piece, x), reverse=True)
-
-            if verbose:
-                print('Most Probable Piece:', possible_pieces[0].get_last_positon())
-
-            piece.update(possible_pieces[0])
-
-            unmatched_new_pieces.remove(possible_pieces[0])
-
-        # ----- END OF MATCHING PIECES ----- #
-
-        if verbose:
-            print('Number of unmatched pieces', len(unmatched_new_pieces))
+            # if verbose:
+            #     print()
+            #     print('My pieces after Match:', self.get_short_description())
 
         # ----- ADDING NEW PIECES ----- #
 
+        if verbose:
+            print()
+            print('Number of unmatched pieces:', len(unmatched_new_pieces))
+
         if len(unmatched_new_pieces) != 0:
-
+            if verbose:
+                print()
             for new_piece in unmatched_new_pieces:
-                # Filter 1. position and size
-                if (new_piece.get_last_positon()[0] >= self._x_expulsion_limit or
-                        new_piece.calculate_area() < 2000):
+                if not self.discard_filters(new_piece, verbose=verbose):
                     continue
-
-                # Filter 2. Initial position x limit and division for other piece
-                if new_piece.get_last_positon()[0] > 100:
-                    # TODO: Check if the piece is a division of another piece.
-                    # One piece in a frame are two or more pieces in the next frame.
-                    continue
-
-                new_piece.id = self._counter
-                new_piece.name = f'unknown-{new_piece.id}'
-                self._counter += 1
-                if verbose:
-                    print('New Piece:', new_piece.name, new_piece.get_last_positon())
-                    print('Counter:', self._counter)
-                self._pieces.append(new_piece)
+                # Add new piece
+                self.add_piece(new_piece, verbose=verbose)
 
         # Return the pieces that are out of range
         out_of_range_pieces = [piece for piece in self._pieces if
                                piece.get_last_positon()[0] >= self._x_expulsion_limit]
         # Update the list of pieces
-        self._pieces = [piece for piece in self._pieces if piece.get_last_positon()[0] < self._x_expulsion_limit]
+        self.delete_pieces(out_of_range_pieces)
 
+        if verbose:
+            print()
+            print('My pieces after updating:', self.get_short_description())
+            print('Released pieces:', self.get_short_description(out_of_range_pieces))
+            print()
+            print('--------------------------')
+            print()
         return out_of_range_pieces
 
     def draw(self, frame: np.ndarray, track: bool = False) -> None:
@@ -354,6 +341,10 @@ class Tracker:
         Args:
             frame: The image to draw the tracks on.
         """
+        # Green line. Addition limit
+        start_point = (self._x_addition_limit, 0)
+        end_point = (self._x_addition_limit, frame.shape[0])
+        cv2.line(frame, start_point, end_point, (0, 255, 0), 2)
         # Red line. Limit
         start_point = (self._x_expulsion_limit, 0)
         end_point = (self._x_expulsion_limit, frame.shape[0])

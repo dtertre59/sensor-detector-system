@@ -71,7 +71,7 @@ def main_video():
     transmitter.initialize()
 
     # Ruta del archivo .avi
-    archivo_mp4 = 'data/videos/samples/full_video_tspeed2_1.mp4'
+    archivo_mp4 = 'data/videos/samples/full_video_tspeed3_4.mp4'
     cap = cv2.VideoCapture(archivo_mp4)
     # Verificar si se abrió correctamente
     if not cap.isOpened():
