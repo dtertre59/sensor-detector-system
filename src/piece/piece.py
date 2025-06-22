@@ -443,12 +443,12 @@ class Piece:
 
     # ----- Speed functions
 
-    def calculate_speed(self) -> tuple[float, float]:
+    def calculate_speed(self, pixels_to_mm: float = 1) -> tuple[float, float]:
         """
         Calculate the speed of the piece using the positions and times.
 
         Returns:
-            tuple: The speed of the piece as a tuple of two numbers (vx, vy).
+            tuple: The speed of the piece as a tuple of two numbers (vx, vy). Units: pixels/s.
 
         Raises:
             ValueError: If there are not enough positions available to calculate the speed.
@@ -469,7 +469,7 @@ class Piece:
         vx = delta_x / delta_time
         vy = delta_y / delta_time
 
-        self._speed = (vx, vy)
+        self._speed = (vx * pixels_to_mm, vy * pixels_to_mm)
 
         return self._speed
 

@@ -26,7 +26,7 @@ class Tracker:
 
     """
 
-    def __init__(self, x_min: float = 0, x_max: float = 640, y_max: float = 580,
+    def __init__(self, x_max: float = 640, y_max: float = 480,
                  min_area: int = 300, tolerance: float = 0.1):
         """
         Initialize the Tracker instance. TODO
@@ -35,7 +35,7 @@ class Tracker:
         self._pieces_all_info: list[tuple[Piece, int]] = []
 
         self._counter = 0
-        self._x_min = x_min
+
         self._x_max = x_max
         self._y_max = y_max
 
@@ -43,7 +43,7 @@ class Tracker:
         self._min_area = min_area
 
         # limits
-        self._x_addition_limit = x_min + 100
+        self._x_addition_limit = 0 + 100
         self._x_expulsion_limit = x_max - 100
 
         # Tolerance for y position
@@ -323,6 +323,7 @@ class Tracker:
         # Return the pieces that are out of range
         out_of_range_pieces = [piece for piece in self._pieces if
                                piece.get_last_positon()[0] >= self._x_expulsion_limit]
+        
         # Update the list of pieces
         self.delete_pieces(out_of_range_pieces)
 
@@ -361,5 +362,6 @@ class Tracker:
         Returns:
             str: A string representation of the Tracker instance.
         """
-        return (f"Tracker(pieces={self._pieces}, counter={self._counter}, x_min={self._x_min}, "
+        # TODO COMPLETE
+        return (f"Tracker(pieces={self._pieces}, counter={self._counter}, "
                 f"x_max={self._x_max}, tolerance={self._tolerance})")

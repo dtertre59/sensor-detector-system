@@ -20,57 +20,7 @@ from src.transmitter import MulticastTransmitter
 from src.factory import SensorFactory, DetectorFactory
 from src.sensor.sensor_type import SensorType
 from src.detector.detector_type import DetectorType
-
-
-class Classifier:
-    """
-    BGR Classifer [B, G, R]
-
-    B = Blue 
-    G = Green
-    R = Red
-    """
-    MATERIALS = {
-        # Dataset 1
-        # 'zinc': (200, 196, 186),
-        # 'brass': (110, 193, 225),
-        # 'copper': (51, 87, 255),
-
-        # # Dataset 2
-        # "copper": (152, 180, 210),
-        # "zinc": (203, 209, 211),
-        # "brass": (157, 199, 213),
-        # "pcb": (183, 204, 192),
-
-        # # Dataset 3
-        # "copper": (81,103,137),
-        # "zinc": (125,131,133),
-        # "brass": (83,125,142),
-        # "pcb": (101,123,111)
-
-        # # Dataset 4
-        # "copper": (83, 105, 136),
-        # "zinc": (135, 140, 142),
-        # "brass": (80, 123, 140),
-        # "pcb": (80, 123, 140)
-
-        # Manual
-        "copper": (83, 105, 136),
-        "zinc": (135, 140, 142),
-        "brass": (80, 123, 140),
-        "pcb": (101, 123, 117)
-    }
-
-    @staticmethod
-    def which_material(color: tuple) -> str:
-        """
-        which material it is
-        """
-        distances = {material: np.linalg.norm(np.array(color) - np.array(m_color)) for material, m_color in Classifier.MATERIALS.items()}
-        # Find the material with the smallest distance
-        closest_material = min(distances, key=distances.get)
-        return closest_material
-
+import src.config_vars as cfv
 
 class PairCoordinator:
     """
@@ -163,12 +113,13 @@ class PairCoordinator:
 
 
 class RawPiece():
-    def __init__(self, material: int, timestamp: int):
+    def __init__(self, material: int, timestamp: int, speed: float):
         self.material = material
         self.timestamp = timestamp
+        self.speed = speed
 
     def pack(self) -> bytes:
-        return struct.pack('II', self.material, self.timestamp)
+        return struct.pack('IIf', self.material, self.timestamp, self.speed)
 
 
 class Coordinator:
@@ -193,9 +144,17 @@ class Coordinator:
         """
         # Config parameters
 
-        self.detector._thresh = 80
-        self.detector.min_area = 300
-        self.tracker._x_addition_limit = 400
+        self.detector._thresh = cfv.RPI_CAM_THRESHOLD
+        self.detector.min_area = cfv.DETECTOR_MIN_AREA
+        self.tracker._x_addition_limit = cfv.X_ADDITION_LIMIT
+        self.tracker._x_expulsion_limit = cfv.X_EXPULSION_LIMIT
+        pixels_to_mm = cfv.PIXELS_TO_MM
+
+        # Window
+        window_name = 'CHS - Detector Machine - Video'
+        cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
+        # Full screen mode
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
         print()
         print('----- Init vars -----')
@@ -223,15 +182,12 @@ class Coordinator:
 
             # Send the released pieces to the peers
             if released_pieces:
-                print('Released pieces:', [released_piece.name for released_piece in released_pieces])
+                print('Released pieces:', self.tracker.get_short_description(released_pieces))
                 for piece in released_pieces:
-
-                    material = Classifier.which_material(piece.calculate_mean_color())
-                    material_id = 0
-                    if material == 'zinc':
-                        material_id = 1
-
-                    data_raw = RawPiece(material_id, int(piece.positions[-1]['time'])).pack()
+                    print('clasification: ',piece._category.name, piece._category.value)
+                    data_raw = RawPiece(material=piece._category.value, 
+                                        timestamp=int(piece.positions[-1]['time']), 
+                                        speed=piece.calculate_speed(pixels_to_mm=pixels_to_mm)[0]).pack()
                     self.transmitter.send_multicast(data_raw)
                     print('Sent:', data_raw)
 
@@ -239,12 +195,16 @@ class Coordinator:
             self.tracker.draw(frame)
             t_i = cv2.cvtColor(threshold_image, cv2.COLOR_GRAY2BGR)
             final_img = cv2.vconcat([t_i, frame])
-
-            cv2.imshow('Video', final_img)
-            cv2.moveWindow('Video', 20, 40)
+            final_img = frame
+            cv2.imshow(window_name, final_img)
+            # cv2.moveWindow('Video', 20, 40)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+
+        print()
+        print('----- Release resoures -----')
+        print()
 
         self.sensor.release()
         self.detector.release()
