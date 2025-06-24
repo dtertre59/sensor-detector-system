@@ -113,13 +113,13 @@ class PairCoordinator:
 
 
 class RawPiece():
-    def __init__(self, material: int, timestamp: int, speed: float):
+    def __init__(self, material: int, timestamp_ms: int, speed: float):
         self.material = material
-        self.timestamp = timestamp
+        self.timestamp_ms = timestamp_ms
         self.speed = speed
 
     def pack(self) -> bytes:
-        return struct.pack('IIf', self.material, self.timestamp, self.speed)
+        return struct.pack('ILf', self.material, self.timestamp_ms, self.speed)
 
 
 class Coordinator:
@@ -184,9 +184,9 @@ class Coordinator:
             if released_pieces:
                 print('Released pieces:', self.tracker.get_short_description(released_pieces))
                 for piece in released_pieces:
-                    print('clasification: ',piece._category.name, piece._category.value)
-                    data_raw = RawPiece(material=piece._category.value, 
-                                        timestamp=int(piece.positions[-1]['time']), 
+                    print('Clasification: ', piece.category.name, piece.category.value)
+                    data_raw = RawPiece(material=piece.category.value, 
+                                        timestamp_ms=int(piece.positions[-1]['time'] * 1000),   # Convert to millis
                                         speed=piece.calculate_speed(pixels_to_mm=pixels_to_mm)[0]).pack()
                     self.transmitter.send_multicast(data_raw)
                     print('Sent:', data_raw)

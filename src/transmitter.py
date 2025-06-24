@@ -30,10 +30,10 @@ class Transmitter():
 
     def send_piece(self, message: bytes) -> None:
         """
-        Send a piece to the peers.
+        Send a message to the peers.
 
         Args:
-            piece (Piece): The piece to send.
+            message (bytes): The piece to send.
         """
 
         try:
@@ -73,18 +73,22 @@ class MulticastTransmitter():
 
     def send_multicast(self, message: bytes) -> None:
         """
-        Send a piece to the peers.
+        Send a message to the peers.
+
+        Args:
+            message (bytes)
         """
         self.sock.sendto(message, (self.mc_host, self.mc_port))
 
 
 class RawPiece():
-    def __init__(self, material: int, timestamp: int):
+    def __init__(self, material: int, timestamp_ms: int, speed: float):
         self.material = material
-        self.timestamp = timestamp
+        self.timestamp_ms = timestamp_ms
+        self.speed = speed
 
     def pack(self) -> bytes:
-        return struct.pack('II', self.material, self.timestamp)
+        return struct.pack('ILf', self.material, self.timestamp_ms, self.speed)
 
 
 
@@ -123,7 +127,10 @@ if __name__ == "__main__":
 
     # print(piece_raw)
     # mctransmiter.send_multicast(piece_raw)
-
-    rp = RawPiece(1, 991231).pack()
+    import time
+    now_timestamp = time.time()
+    now_timestamp_ms = int(now_timestamp * 1000)  # Convert to milliseconds
+    print(now_timestamp_ms)
+    rp = RawPiece(2, (now_timestamp_ms - 1), 10.0).pack()
     print(rp)
     mctransmiter.send_multicast(rp)
