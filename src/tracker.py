@@ -238,6 +238,10 @@ class Tracker:
         Returns:
             list[Pieces]: a list of pieces that comes outside our range. prepare to notify and Analyce
         """
+
+        if len(new_pieces) < 1:
+            return []
+
         # local variables
         unmatched_new_pieces: list[Piece] = new_pieces.copy()
 

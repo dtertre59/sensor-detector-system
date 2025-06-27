@@ -458,9 +458,13 @@ class Piece:
             raise ValueError("At least two positions are required to calculate the speed")
 
         # Calculate the differences in position and time
-        delta_x = self._positions[-1]['position'][0] - self._positions[0]['position'][0]
-        delta_y = self._positions[-1]['position'][1] - self._positions[0]['position'][1]
-        delta_time = self._positions[-1]['time'] - self._positions[0]['time']
+        if len(self._positions) > 11:
+            init_cicle_pos = 10
+        else:
+            init_cicle_pos = 0
+        delta_x = self._positions[-1]['position'][0] - self._positions[init_cicle_pos]['position'][0]
+        delta_y = self._positions[-1]['position'][1] - self._positions[init_cicle_pos]['position'][1]
+        delta_time = self._positions[-1]['time'] - self._positions[init_cicle_pos]['time']
 
         if delta_time == 0:
             raise ValueError("The time difference must be greater than zero")

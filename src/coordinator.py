@@ -116,7 +116,7 @@ class RawPiece():
     def __init__(self, material: int, timestamp_ms: int, speed: float):
         self.material = material
         self.timestamp_ms = timestamp_ms
-        self.speed = speed
+        self.speed = speed  # mm/s
 
     def pack(self) -> bytes:
         return struct.pack('ILf', self.material, self.timestamp_ms, self.speed)
@@ -154,7 +154,7 @@ class Coordinator:
         window_name = 'CHS - Detector Machine - Video'
         cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
         # Full screen mode
-        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
         print()
         print('----- Init vars -----')
@@ -184,7 +184,7 @@ class Coordinator:
             if released_pieces:
                 print('Released pieces:', self.tracker.get_short_description(released_pieces))
                 for piece in released_pieces:
-                    print('Clasification: ', piece.category.name, piece.category.value)
+                    print('Clasification: ', f'{piece.category.name}({piece.category.value})', 'Speed:', piece.calculate_speed(pixels_to_mm=pixels_to_mm)[0])
                     data_raw = RawPiece(material=piece.category.value, 
                                         timestamp_ms=int(piece.positions[-1]['time'] * 1000),   # Convert to millis
                                         speed=piece.calculate_speed(pixels_to_mm=pixels_to_mm)[0]).pack()

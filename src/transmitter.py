@@ -85,7 +85,7 @@ class RawPiece():
     def __init__(self, material: int, timestamp_ms: int, speed: float):
         self.material = material
         self.timestamp_ms = timestamp_ms
-        self.speed = speed
+        self.speed = speed  # mm/s
 
     def pack(self) -> bytes:
         return struct.pack('ILf', self.material, self.timestamp_ms, self.speed)
@@ -131,6 +131,6 @@ if __name__ == "__main__":
     now_timestamp = time.time()
     now_timestamp_ms = int(now_timestamp * 1000)  # Convert to milliseconds
     print(now_timestamp_ms)
-    rp = RawPiece(2, (now_timestamp_ms - 1), 10.0).pack()
+    rp = RawPiece(1, (now_timestamp_ms - 1), 90.0).pack()
     print(rp)
     mctransmiter.send_multicast(rp)
