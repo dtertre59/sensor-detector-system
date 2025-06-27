@@ -70,11 +70,17 @@ class BaseCamera(BaseSensor):
 
         self._photo_path = photo_path
         self._photo_name = photo_name
-        self._photo_counter = obtain_filenames_last_number(self._photo_path, self._photo_name, verbose=False)
+        try:
+            self._photo_counter = obtain_filenames_last_number(self._photo_path, self._photo_name, verbose=False)
+        except:
+            self._photo_counter = 0
 
         self._video_path = video_path
         self._video_name = video_name
-        self._video_counter = obtain_filenames_last_number(self._video_path, self._video_name, verbose=False)
+        try:
+            self._video_counter = obtain_filenames_last_number(self._video_path, self._video_name, verbose=False)
+        except:
+            self._video_counter = 0
 
         self._camera = None
         self._resolution = (640, 480)  # (1536, 864)
