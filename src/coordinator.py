@@ -154,7 +154,7 @@ class Coordinator:
         window_name = 'CHS - Detector Machine - Video'
         cv2.namedWindow(window_name, cv2.WND_PROP_FULLSCREEN)
         # Full screen mode
-        # cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        cv2.setWindowProperty(window_name, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
         print()
         print('----- Init vars -----')
